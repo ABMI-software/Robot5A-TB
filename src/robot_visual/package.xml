@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_visual</name>
+  <version>0.1.0</version>
+  <description>Robot visual package for Robot5A Test Bench.</description>
+  <maintainer email="your_email@example.com">Eliott Frohly</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Dependencies -->
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>cv_bridge</depend>
+  <depend>opencv</depend>
+  <depend>eigen3_cmake_module</depend>
+  <depend>Eigen3</depend>
+  <depend>yaml-cpp</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

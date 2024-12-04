@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_state</name>
+  <version>0.1.0</version>
+  <description>Robot state package for Robot5A Test Bench.</description>
+  <maintainer email="your_email@example.com">Eliott Frohly</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+</package>
