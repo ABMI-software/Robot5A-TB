@@ -25,6 +25,9 @@ ament_target_dependencies(visual_joint_state_publisher rclcpp OpenCV)
 add_executable(camera_test_node src/camera_test_node.cpp)
 ament_target_dependencies(camera_test_node rclcpp OpenCV)
 
+add_executable(transform_logger src/transform_logger.cpp)
+ament_target_dependencies(transform_logger rclcpp tf2_ros)
+
 target_link_libraries(aruco_detector_single
   yaml-cpp
   Eigen3::Eigen
@@ -36,6 +39,7 @@ install(TARGETS
   aruco_detector_double
   visual_joint_state_publisher
   camera_test_node
+  transform_logger
   DESTINATION lib/${PROJECT_NAME}
 )
 
