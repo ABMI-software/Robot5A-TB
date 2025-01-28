@@ -27,7 +27,7 @@ public:
         marker_length_ = 0.03;
 
         // Open camera
-        cap_.open(2, cv::CAP_V4L2);
+        cap_.open(4, cv::CAP_V4L2);
         if (!cap_.isOpened())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to open the camera");

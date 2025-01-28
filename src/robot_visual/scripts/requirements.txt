@@ -1,0 +1,5 @@
+opencv-python==4.9.0.80
+
+export QT_QPA_PLATFORM=xcb
+
+echo "export QT_QPA_PLATFORM=xcb" >> ~/.bashrc

@@ -14,7 +14,7 @@ public:
           tf_listener_(tf_buffer_)
     {
         // Open the CSV file
-        csv_file_.open("/home/eliott-frohly/Robot5A_BT/src/robot_visual/logs/transform_log.csv", std::ios::out | std::ios::app);
+        csv_file_.open("/home/chipmunk-151/camera_aruco/src/robot_visual/logs/transform_log.csv", std::ios::out | std::ios::app);
         if (!csv_file_.is_open())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to open the CSV file for logging.");
