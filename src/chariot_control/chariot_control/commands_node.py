@@ -61,58 +61,12 @@ class SerialNode(Node):
         """Callback function to handle incoming commands."""
         command = msg.data
         self.get_logger().info(f"Received command: {command}")
+        self.send_command(command)
 
-        if command == '1':
-            self.send_command('1')  # Activate manual mode
-            self.get_logger().info("Manual mode activated. Enter 'P <position_mm>' to set a position or 'S' to stop.")
-        elif command.startswith('P '):
-            position = command[2:]  # Extract the position value
-            self.send_command(f'P {position}')  # Send position command to the Nucleo
-            self.get_logger().info(f"Setting position to {position} mm.")
-        elif command == 'S':
-            self.send_command('S')  # Send stop command to the Nucleo
-            self.get_logger().info("Stopping the movement.")
-        elif command == 'M':
-            self.get_logger().info("Displaying available modes...")
-            self.send_command('M')  # Send command to display modes
-        else:
-            self.get_logger().warning(f"Unknown command: {command}")
 
     def check_for_commands(self):
         # This method can be used for additional command checks if needed
         pass
-
-    def manual_mode(self):
-        """Manual mode to set specific positions."""
-        self.get_logger().info("Manual mode activated. Enter a position in mm or 'S' to stop.")
-        self.send_command('1')  # Activate manual mode
-        # Implement a way to receive positions via a ROS2 topic or service
-
-    def random_mode(self):
-        """Random mode for random movements."""
-        self.send_command('2')  # Activate random mode
-        # Implement a way to receive the number of random movements via a ROS2 topic or service
-
-    def return_mode(self):
-        """Return mode between two limit positions."""
-        self.send_command('3')  # Activate return mode
-        # Implement a way to stop the mode via a ROS2 topic or service
-
-    def adjust_speed(self):
-        """Adjust the movement speed."""
-        # Implement a way to receive speed adjustments via a ROS2 topic or service
-
-    def return_to_initial_state(self):
-        """Return the cart to the initial position."""
-        self.send_command('R')
-
-    def display_feedback(self):
-        """Display a summary of actions performed."""
-        self.get_logger().info(f"Positions reached in manual mode: {self.positions_mode1}")
-        self.get_logger().info(f"Positions reached in random mode: {self.positions_mode2}")
-        self.get_logger().info(f"Number of returns performed in mode 3: {self.aller_retours_mode3}")
-        self.get_logger().info(f"Current speed: {self.current_speed} mm/s")
-        self.get_logger().info(f"Total test duration: {round(time.time() - self.start_time, 2)} seconds")
 
 def main(args=None):
     rclpy.init(args=args)
