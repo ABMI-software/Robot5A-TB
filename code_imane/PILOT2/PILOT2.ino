@@ -6,8 +6,8 @@
 #define DISTANCE_PER_TURN 75.0
 #define STEPS_PER_TURN 3200
 #define STEPS_PER_MM (STEPS_PER_TURN / DISTANCE_PER_TURN)
-#define LIMITE_MIN 0.0
-#define LIMITE_MAX 800.0
+#define LIMIT_MIN 0.0
+#define LIMIT_MAX 800.0
 
 float currentPosition = 0.0;  // Current position in mm
 int delaySpeed = 500;        // Time between steps (in microseconds)
@@ -41,7 +41,7 @@ void loop() {
 
 // Move to a specified position
 void moveToPosition(float targetPosition) {
-    if (targetPosition < LIMITE_MIN || targetPosition > LIMITE_MAX) {
+    if (targetPosition < LIMIT_MIN || targetPosition > LIMIT_MAX) {
         Serial.println("Error: Position out of limits.");
         return;
     }
