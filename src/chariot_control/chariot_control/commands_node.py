@@ -31,7 +31,7 @@ class SerialNode(Node):
         # Create a subscriber to listen for commands
         self.command_subscriber = self.create_subscription(
             String,
-            'command_topic',  # Change this to your desired topic name
+            'command_topic',  # Topic Name
             self.command_callback,
             10
         )
@@ -44,7 +44,7 @@ class SerialNode(Node):
         """Send a command to the Nucleo."""
         try:
             self.ser.write((command + "\n").encode())
-            self.get_logger().info(f"Sent command: {command}")
+            # self.get_logger().info(f"Sent command: {command}")
         except serial.SerialException as e:
             self.get_logger().error(f"Serial communication error: {e}")
 
