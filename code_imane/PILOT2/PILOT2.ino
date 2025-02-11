@@ -3,14 +3,14 @@
 #define EN_PIN 8
 
 
-#define DISTANCE_PAR_TOUR 75.0
-#define PAS_PAR_TOUR 3200
-#define PAS_PAR_MM (PAS_PAR_TOUR / DISTANCE_PAR_TOUR)
+#define DISTANCE_PER_TURN 75.0
+#define STEPS_PER_TURN 3200
+#define STEPS_PER_MM (STEPS_PER_TURN / DISTANCE_PER_TURN)
 #define LIMITE_MIN 0.0
 #define LIMITE_MAX 800.0
 
-float positionActuelle = 0.0;  // Current position in mm
-int vitesseDelay = 500;        // Time between steps (in microseconds)
+float currentPosition = 0.0;  // Current position in mm
+int delaySpeed = 500;        // Time between steps (in microseconds)
 
 void setup() {
     pinMode(STEP_PIN, OUTPUT);
@@ -47,24 +47,24 @@ void moveToPosition(float targetPosition) {
     }
 
     Serial.println("Starting movement...");
-    digitalWrite(DIR_PIN, targetPosition > positionActuelle ? HIGH : LOW);
-    int steps = abs((targetPosition - positionActuelle) * (PAS_PAR_MM)); 
+    digitalWrite(DIR_PIN, targetPosition > currentPosition ? HIGH : LOW);
+    int steps = abs((targetPosition - currentPosition) * (STEPS_PER_MM)); 
 
     for (int i = 0; i < steps; i++) {
         digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(vitesseDelay);
+        delayMicroseconds(delaySpeed);
         digitalWrite(STEP_PIN, LOW);
-        delayMicroseconds(vitesseDelay);
+        delayMicroseconds(delaySpeed);
     }
 
-    positionActuelle = targetPosition;
-    Serial.println("Reached target position: " + String(positionActuelle));
+    currentPosition = targetPosition;
+    Serial.println("Reached target position: " + String(currentPosition));
 }
 
 // Change the speed
 void changeSpeed(float newSpeed) {
     if (newSpeed > 0 && newSpeed <= 200) {
-        vitesseDelay = (0.0234 * 1e6) / newSpeed;
+        delaySpeed = (0.0234 * 1e6) / newSpeed;
         Serial.print("Speed set to: ");
         Serial.println(newSpeed);
     } else {
