@@ -4,6 +4,7 @@ from std_msgs.msg import String
 import serial
 import time
 import os
+import threading
 
 class SerialNode(Node):
     def __init__(self):
@@ -27,16 +28,6 @@ class SerialNode(Node):
             self.get_logger().error(f"Error during serial connection: {e}")
             exit(1)
 
-        # Global variables for tracking
-        self.positions_mode1 = []
-        self.positions_mode2 = []
-        self.aller_retours_mode3 = 0
-        self.current_speed = 0  # Stores the current speed
-        self.start_time = time.time()  # Start time for feedback
-
-        # Create a timer to periodically check for commands
-        self.timer = self.create_timer(1.0, self.check_for_commands)
-
         # Create a subscriber to listen for commands
         self.command_subscriber = self.create_subscription(
             String,
@@ -45,15 +36,15 @@ class SerialNode(Node):
             10
         )
 
+        # Start a thread to continuously read from the serial port
+        self.read_thread = threading.Thread(target=self.read_from_serial, daemon=True)
+        self.read_thread.start()
+
     def send_command(self, command):
-        """Send a command to the Nucleo and read the response."""
+        """Send a command to the Nucleo."""
         try:
             self.ser.write((command + "\n").encode())
-            time.sleep(0.1)
-            while self.ser.in_waiting > 0:
-                response = self.ser.readline().decode().strip()
-                self.get_logger().info(response)
-                return response
+            self.get_logger().info(f"Sent command: {command}")
         except serial.SerialException as e:
             self.get_logger().error(f"Serial communication error: {e}")
 
@@ -63,10 +54,16 @@ class SerialNode(Node):
         self.get_logger().info(f"Received command: {command}")
         self.send_command(command)
 
-
-    def check_for_commands(self):
-        # This method can be used for additional command checks if needed
-        pass
+    def read_from_serial(self):
+        """Continuously read responses from the Nucleo."""
+        while rclpy.ok():
+            try:
+                if self.ser.in_waiting > 0:
+                    response = self.ser.readline().decode().strip()
+                    self.get_logger().info(f"Nucleo response: {response}")
+            except serial.SerialException as e:
+                self.get_logger().error(f"Serial communication error: {e}")
+            time.sleep(0.1)  # Small delay to prevent busy waiting
 
 def main(args=None):
     rclpy.init(args=args)
