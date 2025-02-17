@@ -199,8 +199,8 @@ private:
 
         // Visualize results
         cv::imshow("Original Frame", frame);
-        cv::imshow("Enhanced", enhanced);
-        cv::imshow("Binary", binary);
+        // cv::imshow("Enhanced", enhanced);
+        // cv::imshow("Binary", binary);
         cv::waitKey(1);
     }
 

@@ -10,6 +10,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch', ['launch/chariot_control_launch.py']),
+        ('share/' + package_name + '/commands.txt', ['commands.txt']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +22,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'commands_node = chariot_control.commands_node:main'
+            'commands_node = chariot_control.commands_node:main',
+            'commands_executor_node = chariot_control.commands_node:main'
         ],
     },
 )
