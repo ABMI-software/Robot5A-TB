@@ -29,7 +29,7 @@ class CommandExecutorNode(Node):
         )
 
         # Load commands from a file
-        self.load_commands('commands.txt')
+        self.load_commands('commands/commands.txt')
 
         # Create a timer to check for command execution
         self.timer = self.create_timer(1.0, self.execute_command)
