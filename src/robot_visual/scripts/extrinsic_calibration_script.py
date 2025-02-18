@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Paths
-image_path = "/home/chipmunk-151/camera_aruco/src/robot_visual/config/extrinsic_images/camera_1_001.jpg"
+image_path = "/home/chipmunk-151/camera_aruco/src/robot_visual/config/extrinsic_images/camera_1_004.jpg"
 calibration_path = "/home/chipmunk-151/camera_aruco/src/robot_visual/config/camera_1_calibration.yaml"
 
 # Marker info

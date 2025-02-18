@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped
+from ament_index_python.packages import get_package_share_directory
 import csv
 import os
 import time
@@ -15,6 +16,9 @@ class CommandExecutorNode(Node):
         self.current_command_index = 0
         self.is_executing = False
         self.csv_file_path = 'aruco_log.csv'
+
+        # Create a publisher for command topic
+        self.command_publisher = self.create_publisher(String, '/command_topic', 10)
 
         # Create a subscriber to listen for ArUco marker transforms
         self.tf_subscriber = self.create_subscription(
@@ -35,12 +39,18 @@ class CommandExecutorNode(Node):
 
     def load_commands(self, filename):
         """Load commands from a text file."""
-        if os.path.exists(filename):
-            with open(filename, 'r') as file:
+        # Get the absolute path to the commands.txt file
+        package_share_directory = get_package_share_directory('chariot_control')
+        full_path = os.path.join(package_share_directory, filename)  # Correct path
+
+        self.get_logger().info(f"Attempting to load commands from: {full_path}")  # Debug log
+
+        if os.path.isfile(full_path):
+            with open(full_path, 'r') as file:
                 self.commands = [line.strip() for line in file.readlines()]
-            self.get_logger().info(f"Loaded {len(self.commands)} commands from {filename}.")
+            self.get_logger().info(f"Loaded {len(self.commands)} commands from {full_path}.")
         else:
-            self.get_logger().error(f"Command file {filename} not found.")
+            self.get_logger().error(f"Command file {full_path} not found or is not a file.")
 
     def initialize_csv(self):
         """Initialize the CSV file for logging."""
@@ -57,8 +67,6 @@ class CommandExecutorNode(Node):
 
     def extract_aruco_info(self, msg):
         """Extract relevant ArUco information from the transform message."""
-        # Here you can extract the necessary information from the msg
-        # For demonstration, we will return a dummy string
         return f"Position: ({msg.transform.translation.x}, {msg.transform.translation.y}, {msg.transform.translation.z})"
 
     def execute_command(self):
@@ -68,6 +76,11 @@ class CommandExecutorNode(Node):
                 command = self.commands[self.current_command_index]
                 self.get_logger().info(f"Executing command: {command}")
                 self.is_executing = True
+
+                # Publish the command to the /command_topic
+                command_msg = String(data=command)
+                self.command_publisher.publish(command_msg)
+                self.get_logger().info(f"Published command: {command}")
 
                 # Simulate command execution (replace with actual command sending logic)
                 time.sleep(2)  # Simulate time taken to execute the command
@@ -79,8 +92,6 @@ class CommandExecutorNode(Node):
 
     def log_to_csv(self, command, aruco_info):
         """Log command and ArUco information to the CSV file."""
-        # Here you would extract initial and end positions from the command
-        # For demonstration, we will use dummy values
         initial_position = "0.0"  # Replace with actual initial position
         end_position = "100.0"  # Replace with actual end position
 

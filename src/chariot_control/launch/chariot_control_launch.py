@@ -6,15 +6,20 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='chariot_control',
-            executable='commands_executor_node',
-            name='commands_executor',
+            executable='serial_node',  
+            name='serial',
             output='screen',
-            parameters=[{'param_name': 'param_value'}],  
+        ),
+        Node(
+            package='robot_visual',
+            executable='aruco_detector_single',
+            name='aruco_detector_single',
+            output='screen',  
         ),
         Node(
             package='chariot_control',
-            executable='commands_node',  
-            name='commands',
-            output='screen',
+            executable='commands_executor_node',
+            name='commands_executor',
+            output='screen',  
         ),
     ])
