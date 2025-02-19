@@ -60,11 +60,11 @@ def calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist):
 
 # Configuration for camera 1
 calibrate_camera(
-    images_pattern="/home/chipmunk-151/camera_aruco/src/robot_visual/config/camera_1_images/*.jpg",
+    images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images/*.jpg",
     chessboard_size=(20, 13),# n-1
     
     square_size=0.02,
-    output_file="/home/chipmunk-151/camera_aruco/src/robot_visual/config/camera_1_calibration.yaml",
+    output_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml",
 )
 
 

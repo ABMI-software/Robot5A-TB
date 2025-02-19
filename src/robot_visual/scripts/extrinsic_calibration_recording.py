@@ -2,7 +2,7 @@ import cv2
 import os
 
 # Path for saving images (common folder for both cameras)
-base_path = "/home/chipmunk-151/camera_aruco/src/robot_visual/config/extrinsic_images"
+base_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images"
 
 # Create the directory if it does not exist
 os.makedirs(base_path, exist_ok=True)

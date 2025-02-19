@@ -2,7 +2,7 @@ import cv2
 import os
 
 # Paths for saving images
-camera_1_path = "/home/chipmunk-151/camera_aruco/src/robot_visual/config/camera_1_images"
+camera_1_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images"
 
 
 # Create directories if they do not exist
