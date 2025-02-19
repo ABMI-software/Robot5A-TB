@@ -42,8 +42,8 @@ class CommandExecutorNode(Node):
         # Initialize CSV file
         self.initialize_csv()
 
-        # Start a timer to execute commands after initialization
-        self.create_timer(1.0, self.start_command_execution)  # Start after 1 second
+        # Start executing commands
+        self.execute_command()  # Start executing commands immediately
 
     def load_commands(self, filename):
         """Load commands from a text file."""
@@ -81,10 +81,8 @@ class CommandExecutorNode(Node):
         self.get_logger().info(f"Received serial response: {msg.data}")
         if "Reached target position" in msg.data:
             self.target_reached = True  # Set the flag when the target is reached
-
-    def start_command_execution(self):
-        """Start executing commands after initialization."""
-        self.execute_command()  # Start executing commands
+        elif "Speed set to" in msg.data:
+            self.target_reached = True  # Set the flag
 
     def execute_command(self):
         """Execute the current command."""
