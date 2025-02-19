@@ -5,6 +5,7 @@ from tf2_msgs.msg import TFMessage  # Import the TFMessage type
 from ament_index_python.packages import get_package_share_directory
 import csv
 import os
+import time
 
 class CommandExecutorNode(Node):
     def __init__(self):
@@ -43,7 +44,7 @@ class CommandExecutorNode(Node):
         self.initialize_csv()
 
         # Start a timer to execute commands after initialization
-        self.create_timer(4.0, self.start_command_execution)  # Start after 1 second
+        self.create_timer(4.0, self.start_command_execution)  # Start after 4 seconds
 
         # Create a timer to check for command completion
         self.create_timer(0.1, self.check_command_completion)  # Check every 100 ms
@@ -66,18 +67,22 @@ class CommandExecutorNode(Node):
         """Initialize the CSV file for logging."""
         with open(self.csv_file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Command', 'Initial Position', 'End Position', 'ArUco Info'])  # Header
+            writer.writerow(['Command', 'Initial Position', 'End Position', 'Time', 'ArUco ID', 'Translation X', 'Translation Y', 'Translation Z', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
 
     def tf_callback(self, msg):
         """Callback function to handle incoming TF messages."""
         if self.is_executing:
             for transform in msg.transforms:
-                aruco_info = self.extract_aruco_info(transform)
-                self.log_to_csv(self.commands[self.current_command_index], aruco_info)
+                aruco_id, translation, rotation = self.extract_info(transform)
+                self.log_to_csv(self.commands[self.current_command_index], aruco_id, translation, rotation)
 
-    def extract_aruco_info(self, transform):
-        """Extract relevant ArUco information from the transform message."""
-        return f"Position: ({transform.transform.translation.x}, {transform.transform.translation.y}, {transform.transform.translation.z})"
+    def extract_info(self, transform):
+        """Extract relevant ArUco information and full transform information."""
+        aruco_id = transform.child_frame_id  # Assuming child_frame_id is the ArUco marker ID
+        translation = transform.transform.translation
+        rotation = transform.transform.rotation
+        
+        return aruco_id, translation, rotation
 
     def serial_response_callback(self, msg):
         """Callback function to handle responses from the serial node."""
@@ -112,16 +117,32 @@ class CommandExecutorNode(Node):
             self.is_executing = False
             self.get_logger().info(f"Finished executing command: {self.commands[self.current_command_index]}")
             self.current_command_index += 1
-            self.execute_command()  # Process the next command
+            
+            # Check if there are more commands to execute
+            if self.current_command_index < len(self.commands):
+                self.execute_command()  # Process the next command
+            else:
+                self.get_logger().info("All commands executed. Shutting down.")
+                rclpy.shutdown()  # Shutdown the node when all commands are done
 
-    def log_to_csv(self, command, aruco_info):
-        """Log command and ArUco information to the CSV file."""
+    def log_to_csv(self, command, aruco_id, translation, rotation):
+        """Log command, ArUco information, and transform information to the CSV file."""
         initial_position = "0.0"  # Replace with actual initial position
         end_position = "100.0"  # Replace with actual end position
+        current_time = time.time()  # Get the current time
+
+        # Extract translation and rotation components
+        translation_x = translation.x
+        translation_y = translation.y
+        translation_z = translation.z
+        rotation_x = rotation.x
+        rotation_y = rotation.y
+        rotation_z = rotation.z
+        rotation_w = rotation.w
 
         with open(self.csv_file_path, mode='a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([command, initial_position, end_position, aruco_info])
+            writer.writerow([command, initial_position, end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])
 
 def main(args=None):
     rclpy.init(args=args)
