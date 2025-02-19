@@ -19,6 +19,7 @@ class CommandExecutorNode(Node):
         self.target_reached = False  # Flag to check if target is reached
         self.initial_position = 0.0  # Starting position
         self.end_position = 0.0  # End position based on commands
+        self.speed = 200.0  # Default speed
 
         # Create a publisher for command topic
         self.command_publisher = self.create_publisher(String, '/command_topic', 10)
@@ -69,7 +70,7 @@ class CommandExecutorNode(Node):
         """Initialize the CSV file for logging."""
         with open(self.csv_file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Command', 'Initial Position', 'End Position', 'Time', 'ArUco ID', 'Translation X', 'Translation Y', 'Translation Z', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
+            writer.writerow(['Command', 'Speed',  'Initial Position', 'End Position', 'Time', 'ArUco ID', 'Translation X', 'Translation Y', 'Translation Z', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
 
     def tf_callback(self, msg):
         """Callback function to handle incoming TF messages."""
@@ -91,6 +92,11 @@ class CommandExecutorNode(Node):
         self.get_logger().info(f"Received serial response: {msg.data}")
         if "Reached target position" in msg.data or "Speed set to" in msg.data:
             self.target_reached = True  # Set the flag when the target is reached or speed is set
+            if "Speed set to" in msg.data:
+                # Extract the speed value from the message
+                speed_value = float(msg.data.split(":")[-1].strip())
+                self.speed = speed_value  # Update the speed variable
+                self.get_logger().info(f"Speed updated to: {self.speed}")
 
     def start_command_execution(self):
         """Start executing commands after initialization."""
@@ -150,7 +156,7 @@ class CommandExecutorNode(Node):
 
         with open(self.csv_file_path, mode='a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([command, self.initial_position, self.end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])
+            writer.writerow([command, self.speed, self.initial_position, self.end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])  # Log speed
 
 def main(args=None):
     rclpy.init(args=args)
