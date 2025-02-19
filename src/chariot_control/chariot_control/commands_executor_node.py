@@ -5,7 +5,6 @@ from tf2_msgs.msg import TFMessage  # Import the TFMessage type
 from ament_index_python.packages import get_package_share_directory
 import csv
 import os
-import time
 
 class CommandExecutorNode(Node):
     def __init__(self):
@@ -16,34 +15,42 @@ class CommandExecutorNode(Node):
         self.current_command_index = 0
         self.is_executing = False
         self.csv_file_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log.csv'
+        self.target_reached = False  # Flag to check if target is reached
 
         # Create a publisher for command topic
         self.command_publisher = self.create_publisher(String, '/command_topic', 10)
 
         # Create a subscriber to listen for ArUco marker transforms
         self.tf_subscriber = self.create_subscription(
-            TFMessage,  # Change to TFMessage
-            '/tf',  # Topic for ArUco marker transforms
+            TFMessage,
+            '/tf',
             self.tf_callback,
             50
+        )
+
+        # Create a subscriber to listen for serial responses
+        self.serial_response_subscriber = self.create_subscription(
+            String,  
+            '/serial_response_topic',  # Topic for serial responses
+            self.serial_response_callback,
+            10
         )
 
         # Load commands from a file
         self.load_commands('commands/commands.txt')
 
-        # Create a timer to check for command execution
-        self.timer = self.create_timer(1.0, self.execute_command)
-
         # Initialize CSV file
         self.initialize_csv()
 
+        # Start a timer to execute commands after initialization
+        self.create_timer(1.0, self.start_command_execution)  # Start after 1 second
+
     def load_commands(self, filename):
         """Load commands from a text file."""
-        # Get the absolute path to the commands.txt file
         package_share_directory = get_package_share_directory('chariot_control')
-        full_path = os.path.join(package_share_directory, filename)  # Correct path
+        full_path = os.path.join(package_share_directory, filename)
 
-        self.get_logger().info(f"Attempting to load commands from: {full_path}")  # Debug log
+        self.get_logger().info(f"Attempting to load commands from: {full_path}")
 
         if os.path.isfile(full_path):
             with open(full_path, 'r') as file:
@@ -61,13 +68,23 @@ class CommandExecutorNode(Node):
     def tf_callback(self, msg):
         """Callback function to handle incoming TF messages."""
         if self.is_executing:
-            for transform in msg.transforms:  # Iterate over the transforms
+            for transform in msg.transforms:
                 aruco_info = self.extract_aruco_info(transform)
                 self.log_to_csv(self.commands[self.current_command_index], aruco_info)
 
     def extract_aruco_info(self, transform):
         """Extract relevant ArUco information from the transform message."""
         return f"Position: ({transform.transform.translation.x}, {transform.transform.translation.y}, {transform.transform.translation.z})"
+
+    def serial_response_callback(self, msg):
+        """Callback function to handle responses from the serial node."""
+        self.get_logger().info(f"Received serial response: {msg.data}")
+        if "Reached target position" in msg.data:
+            self.target_reached = True  # Set the flag when the target is reached
+
+    def start_command_execution(self):
+        """Start executing commands after initialization."""
+        self.execute_command()  # Start executing commands
 
     def execute_command(self):
         """Execute the current command."""
@@ -76,19 +93,24 @@ class CommandExecutorNode(Node):
                 command = self.commands[self.current_command_index]
                 self.get_logger().info(f"Executing command: {command}")
                 self.is_executing = True
+                self.target_reached = False  # Reset the flag
 
                 # Publish the command to the /command_topic
                 command_msg = String(data=command)
                 self.command_publisher.publish(command_msg)
                 self.get_logger().info(f"Published command: {command}")
 
-                # Simulate command execution (replace with actual command sending logic)
-                time.sleep(2)  # Simulate time taken to execute the command
+                # Wait for the target position to be reached
+                while not self.target_reached:
+                    rclpy.spin_once(self)  # Process callbacks
 
                 # After execution, update the command index
                 self.is_executing = False
                 self.current_command_index += 1
                 self.get_logger().info(f"Finished executing command: {command}")
+
+                # Call execute_command again to process the next command
+                self.execute_command()
 
     def log_to_csv(self, command, aruco_info):
         """Log command and ArUco information to the CSV file."""

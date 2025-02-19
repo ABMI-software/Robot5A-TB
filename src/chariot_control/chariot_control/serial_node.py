@@ -36,6 +36,9 @@ class SerialNode(Node):
             10
         )
 
+        # Create a publisher for serial responses
+        self.response_publisher = self.create_publisher(String, '/serial_response_topic', 10)
+
         # Start a thread to continuously read from the serial port
         self.read_thread = threading.Thread(target=self.read_from_serial, daemon=True)
         self.read_thread.start()
@@ -61,6 +64,9 @@ class SerialNode(Node):
                 if self.ser.in_waiting > 0:
                     response = self.ser.readline().decode().strip()
                     self.get_logger().info(f"Nucleo response: {response}")
+                    # Publish the response to the new topic
+                    response_msg = String(data=response)
+                    self.response_publisher.publish(response_msg)
             except serial.SerialException as e:
                 self.get_logger().error(f"Serial communication error: {e}")
             time.sleep(0.1)  # Small delay to prevent busy waiting
