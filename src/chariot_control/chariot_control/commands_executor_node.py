@@ -15,7 +15,7 @@ class CommandExecutorNode(Node):
         self.commands = []
         self.current_command_index = 0
         self.is_executing = False
-        self.csv_file_path = 'aruco_log.csv'
+        self.csv_file_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log.csv'
 
         # Create a publisher for command topic
         self.command_publisher = self.create_publisher(String, '/command_topic', 10)

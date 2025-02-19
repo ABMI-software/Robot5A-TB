@@ -10,7 +10,7 @@
 #define LIMIT_MAX 800.0
 
 float currentPosition = 0.0;  // Current position in mm
-int delaySpeed = 250;        // Time between steps (in microseconds)
+int delaySpeed = 117;        // Time between steps (in microseconds)
 
 void setup() {
     pinMode(STEP_PIN, OUTPUT);
