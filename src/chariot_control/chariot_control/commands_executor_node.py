@@ -42,8 +42,11 @@ class CommandExecutorNode(Node):
         # Initialize CSV file
         self.initialize_csv()
 
-        # Start executing commands
-        self.execute_command()  # Start executing commands immediately
+        # Start a timer to execute commands after initialization
+        self.create_timer(4.0, self.start_command_execution)  # Start after 1 second
+
+        # Create a timer to check for command completion
+        self.create_timer(0.1, self.check_command_completion)  # Check every 100 ms
 
     def load_commands(self, filename):
         """Load commands from a text file."""
@@ -79,10 +82,15 @@ class CommandExecutorNode(Node):
     def serial_response_callback(self, msg):
         """Callback function to handle responses from the serial node."""
         self.get_logger().info(f"Received serial response: {msg.data}")
-        if "Reached target position" in msg.data:
-            self.target_reached = True  # Set the flag when the target is reached
-        elif "Speed set to" in msg.data:
-            self.target_reached = True  # Set the flag
+        if "Reached target position" in msg.data or "Speed set to" in msg.data:
+            self.target_reached = True  # Set the flag when the target is reached or speed is set
+
+    def start_command_execution(self):
+        """Start executing commands after initialization."""
+        if self.commands:
+            self.execute_command()  # Start executing commands immediately
+        else:
+            self.get_logger().error("No commands loaded. Command execution will not start.")
 
     def execute_command(self):
         """Execute the current command."""
@@ -98,17 +106,13 @@ class CommandExecutorNode(Node):
                 self.command_publisher.publish(command_msg)
                 self.get_logger().info(f"Published command: {command}")
 
-                # Wait for the target position to be reached
-                while not self.target_reached:
-                    rclpy.spin_once(self)  # Process callbacks
-
-                # After execution, update the command index
-                self.is_executing = False
-                self.current_command_index += 1
-                self.get_logger().info(f"Finished executing command: {command}")
-
-                # Call execute_command again to process the next command
-                self.execute_command()
+    def check_command_completion(self):
+        """Check if the current command has been completed."""
+        if self.is_executing and self.target_reached:
+            self.is_executing = False
+            self.get_logger().info(f"Finished executing command: {self.commands[self.current_command_index]}")
+            self.current_command_index += 1
+            self.execute_command()  # Process the next command
 
     def log_to_csv(self, command, aruco_info):
         """Log command and ArUco information to the CSV file."""
