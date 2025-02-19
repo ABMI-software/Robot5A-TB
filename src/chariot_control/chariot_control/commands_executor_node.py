@@ -17,6 +17,8 @@ class CommandExecutorNode(Node):
         self.is_executing = False
         self.csv_file_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log.csv'
         self.target_reached = False  # Flag to check if target is reached
+        self.initial_position = 0.0  # Starting position
+        self.end_position = 0.0  # End position based on commands
 
         # Create a publisher for command topic
         self.command_publisher = self.create_publisher(String, '/command_topic', 10)
@@ -106,6 +108,13 @@ class CommandExecutorNode(Node):
                 self.is_executing = True
                 self.target_reached = False  # Reset the flag
 
+                # Determine initial and end positions based on command
+                if command.startswith('P'):
+                    self.end_position = float(command[1:])  # Extract the number after 'P'
+                    self.get_logger().info(f"Setting end position to: {self.end_position}")
+                elif command.startswith('V'):
+                    self.get_logger().info(f"Speed command received: {command}")
+
                 # Publish the command to the /command_topic
                 command_msg = String(data=command)
                 self.command_publisher.publish(command_msg)
@@ -116,6 +125,7 @@ class CommandExecutorNode(Node):
         if self.is_executing and self.target_reached:
             self.is_executing = False
             self.get_logger().info(f"Finished executing command: {self.commands[self.current_command_index]}")
+            self.initial_position = self.end_position  # Update initial position to the last end position
             self.current_command_index += 1
             
             # Check if there are more commands to execute
@@ -127,8 +137,6 @@ class CommandExecutorNode(Node):
 
     def log_to_csv(self, command, aruco_id, translation, rotation):
         """Log command, ArUco information, and transform information to the CSV file."""
-        initial_position = "0.0"  # Replace with actual initial position
-        end_position = "100.0"  # Replace with actual end position
         current_time = time.time()  # Get the current time
 
         # Extract translation and rotation components
@@ -142,7 +150,7 @@ class CommandExecutorNode(Node):
 
         with open(self.csv_file_path, mode='a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([command, initial_position, end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])
+            writer.writerow([command, self.initial_position, self.end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])
 
 def main(args=None):
     rclpy.init(args=args)
