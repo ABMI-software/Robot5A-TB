@@ -193,6 +193,32 @@ private:
             }
         }
 
+        // Start with the origin point (0, 0, 0) in the world frame
+        Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
+
+        // Transform the origin point to camera coordinates
+        Eigen::Vector4d transformed_origin = camera_transform_ * origin_3d; // Perform the multiplication
+
+        // Project the 3D point to 2D pixel coordinates
+        Eigen::Vector3d projected_point = transformed_origin.head<3>(); // Get the 3D point
+
+        // Convert camMatrix_ from cv::Mat to Eigen::Matrix3d
+        Eigen::Matrix3d camMatrix_eigen;
+        camMatrix_eigen << camMatrix_.at<double>(0, 0), camMatrix_.at<double>(0, 1), camMatrix_.at<double>(0, 2),
+                        camMatrix_.at<double>(1, 0), camMatrix_.at<double>(1, 1), camMatrix_.at<double>(1, 2),
+                        camMatrix_.at<double>(2, 0), camMatrix_.at<double>(2, 1), camMatrix_.at<double>(2, 2);
+
+        // Project to pixel coordinates
+        Eigen::Vector3d pixel_point_homogeneous = camMatrix_eigen * projected_point; // Perform the multiplication
+        pixel_point_homogeneous /= pixel_point_homogeneous(2); // Normalize by the z-coordinate
+
+        // Get the pixel coordinates
+        int pixel_x = static_cast<int>(pixel_point_homogeneous(0));
+        int pixel_y = static_cast<int>(pixel_point_homogeneous(1));
+
+        // Draw the origin point on the frame
+        cv::circle(frame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
+
         // Resize images
         int newWidth = 800; 
         int newHeight = 600; 

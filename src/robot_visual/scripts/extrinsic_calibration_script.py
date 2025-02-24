@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Paths
-image_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images/camera_1_004.jpg"
+image_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images/camera_1_003.jpg"
 calibration_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml"
 
 # Marker info
@@ -11,11 +11,11 @@ aruco_dict_type = cv2.aruco.DICT_6X6_250
 
 # Positions of markers in world frame
 marker_positions_world = {
-    0: (0.0475 - 0, -0.0475 - 0, 0.0),# 11 repere axe 
-    1: (0.3475 - 0, -0.0475 - 0, 0.0),
-    2: (0.0475 - 0, -0.2475 - 0, 0.0),
-    3: (0.3475 - 0, -0.2475 - 0, 0.0),
-    4: (0.1975 - 0, -0.1475 - 0, 0.0)
+    0: (-0.3725, 0.0725, 0.0),
+    1: (-0.0725, 0.0725, 0.0),
+    2: (-0.3725, -0.1275, 0.0),
+    3: (-0.0725, -0.1275, 0.0),
+    4: (-0.2225, -0.0275, 0.0)
 }
 
 def load_camera_calibration(calibration_file):
