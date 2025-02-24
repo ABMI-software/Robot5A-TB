@@ -61,7 +61,7 @@ void moveToPosition(float targetPosition) {
     Serial.println("Reached target position: " + String(currentPosition));
 }
 
-// Change the speed
+// Change the speed (mm/s)
 void changeSpeed(float newSpeed) {
     if (newSpeed > 0 && newSpeed <= 200) {
         delaySpeed = (0.0234 * 1e6) / newSpeed;

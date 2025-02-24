@@ -70,7 +70,7 @@ class CommandExecutorNode(Node):
         """Initialize the CSV file for logging."""
         with open(self.csv_file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Command', 'Speed',  'Initial Position', 'End Position', 'Time', 'ArUco ID', 'Translation X', 'Translation Y', 'Translation Z', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
+            writer.writerow(['Command', 'Speed (mm/s)',  'Initial Position (mm)', 'End Position (mm)', 'Time (s)', 'ArUco ID', 'Translation X (m)', 'Translation Y (m)', 'Translation Z (m)', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
 
     def tf_callback(self, msg):
         """Callback function to handle incoming TF messages."""
