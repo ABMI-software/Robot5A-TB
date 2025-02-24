@@ -43,6 +43,9 @@ public:
         // Configure ArUco detector parameters
         configureDetectorParameters();
 
+        // Initialize the publisher for /tf_detected
+        tf_detected_publisher_ = this->create_publisher<geometry_msgs::msg::TransformStamped>("/tf_detected", 10);
+
         // Timer for frame processing
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(33), // Approx. 30fps
@@ -59,6 +62,7 @@ private:
     cv::VideoCapture cap_;
     cv::Mat camMatrix_, distCoeffs_;
     tf2_ros::TransformBroadcaster tf_broadcaster_;
+    rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr tf_detected_publisher_; // Publisher for /tf_detected
     Eigen::Matrix4d camera_transform_;
     double marker_length_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -167,7 +171,6 @@ private:
         cv::Mat binary;
         cv::adaptiveThreshold(enhanced, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 11, 2);
 
-
         // Detect markers
         std::vector<int> markerIds;
         std::vector<std::vector<cv::Point2f>> markerCorners;
@@ -237,6 +240,9 @@ private:
         transformStamped.transform.rotation.w = quaternion.w();
 
         tf_broadcaster_.sendTransform(transformStamped);
+        if (marker_id==0 ){
+        tf_detected_publisher_->publish(transformStamped); // Publish to /tf_detected
+        }
     }
 };
 
