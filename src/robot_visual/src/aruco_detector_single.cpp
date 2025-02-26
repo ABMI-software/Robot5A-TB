@@ -1,4 +1,5 @@
 // CODE OPENCV 4.7.0.72 FOR SOLVEPNP
+//pip3 install opencv-python==4.7.0.72
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
