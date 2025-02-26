@@ -182,11 +182,21 @@ private:
         if (!markerIds.empty())
         {
             std::vector<cv::Vec3d> rvecs, tvecs;
-            cv::aruco::estimatePoseSingleMarkers(markerCorners, marker_length_, camMatrix_, distCoeffs_, rvecs, tvecs);
 
             for (size_t i = 0; i < markerIds.size(); ++i)
             {
                 int marker_id = markerIds[i];
+
+                // Define the 3D points of the marker corners in the marker's local coordinate system
+                std::vector<cv::Point3f> markerPoints = {
+                    cv::Point3f(-marker_length_ / 2, marker_length_ / 2, 0),  // Point 0
+                    cv::Point3f(marker_length_ / 2, marker_length_ / 2, 0),   // Point 1
+                    cv::Point3f(marker_length_ / 2, -marker_length_ / 2, 0),  // Point 2
+                    cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)  // Point 3
+                };
+
+                // Solve PnP using SOLVEPNP_IPPE_SQUARE
+                cv::solvePnP(markerPoints, markerCorners[i], camMatrix_, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE);
 
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
