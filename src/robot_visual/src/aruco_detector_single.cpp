@@ -1,6 +1,3 @@
-// CODE OPENCV 4.7.0.72 FOR SOLVEPNP
-//pip3 install opencv-python==4.7.0.72
-
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -128,23 +125,6 @@ private:
     void configureDetectorParameters()
     {
         detectorParams_ = cv::aruco::DetectorParameters::create();
-
-        // // Thresholding parameters
-        // detectorParams_->adaptiveThreshWinSizeMin = 5;
-        // detectorParams_->adaptiveThreshWinSizeMax = 21;
-        // detectorParams_->adaptiveThreshWinSizeStep = 4;
-        // detectorParams_->adaptiveThreshConstant = 7;
-
-        // // Contour filtering
-        // detectorParams_->minMarkerPerimeterRate = 0.03;
-        // detectorParams_->maxMarkerPerimeterRate = 4.0;
-        // detectorParams_->polygonalApproxAccuracyRate = 0.05;
-
-        // // Corner refinement
-        // detectorParams_->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-        // detectorParams_->cornerRefinementWinSize = 5;
-        // detectorParams_->cornerRefinementMaxIterations = 30;
-        // detectorParams_->cornerRefinementMinAccuracy = 0.1;
 
         // Dictionary for ArUco markers
         dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
@@ -280,16 +260,15 @@ private:
 
         tf_broadcaster_.sendTransform(transformStamped);
         if (marker_id==0 ){
-        tf_detected_publisher_->publish(transformStamped); // Publish to /tf_detected
+        tf_detected_publisher_->publish(transformStamped); // Publish detected transform
         }
     }
 };
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<ArucoDetectorSingle>();
-    rclcpp::spin(node);
+    rclcpp::spin(std::make_shared<ArucoDetectorSingle>());
     rclcpp::shutdown();
     return 0;
 }

@@ -1,0 +1,21 @@
+// CODE OPENCV 4.7.0.72 FOR SOLVEPNP
+
+
+// remove
+sudo apt remove --purge 'libopencv*' python3-opencv
+sudo apt autoremove
+
+
+// install
+sudo apt update
+sudo apt install libopencv-dev python3-opencv
+sudo apt install ros-humble-cv-bridge
+
+// build clean
+rm -rf build install log
+colcon build --symlink-install --cmake-clean-cache
+
+// if there are residual install
+sudo rm -rf /usr/local/lib/cmake/opencv4
+sudo rm -rf /usr/local/lib/pkgconfig/opencv4.pc
+sudo rm -rf /usr/local/bin/opencv*
