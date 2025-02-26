@@ -23,6 +23,4 @@ RUN apt-get update && \
     apt-get install -y pip \
                        python3-venv
 
-# RUN rosdep update && \
-#     rosdep install --from-paths src --ignore-src --rosdistro jazzy -y
 
