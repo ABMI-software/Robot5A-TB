@@ -31,7 +31,7 @@ def main():
     
 
     # Open cameras
-    cap_1 = cv2.VideoCapture(4)  # First camera
+    cap_1 = cv2.VideoCapture(0)  # First camera
 
     if not cap_1.isOpened():
         print("Error: Camera 1 not found.")

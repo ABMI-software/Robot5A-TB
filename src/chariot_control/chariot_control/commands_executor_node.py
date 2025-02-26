@@ -81,7 +81,7 @@ class CommandExecutorNode(Node):
 
     def extract_info(self, transform):
         """Extract relevant ArUco information and full transform information."""
-        aruco_id = transform.child_frame_id  # Assuming child_frame_id is the ArUco marker ID
+        aruco_id = transform.child_frame_id  # Child_frame_id is the ArUco marker ID
         translation = transform.transform.translation
         rotation = transform.transform.rotation
         

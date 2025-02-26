@@ -1,3 +1,5 @@
+// CODE OPENCV 4.7.0.72 FOR SOLVEPNP
+
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -27,7 +29,7 @@ public:
         marker_length_ = 0.03;
 
         // Open camera
-        cap_.open(4, cv::CAP_V4L2);
+        cap_.open(0, cv::CAP_V4L2);
         if (!cap_.isOpened())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to open the camera");
