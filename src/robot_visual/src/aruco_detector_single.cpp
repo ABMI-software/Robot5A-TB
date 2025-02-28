@@ -50,6 +50,11 @@ public:
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(33), // Approx. 30fps
             std::bind(&ArucoDetectorSingle::processFrame, this));
+
+        // Low-pass filter parameters
+        alpha_ = 0.2;
+        prev_rvecs_.resize(1);
+        prev_tvecs_.resize(1);
     }
 
     ~ArucoDetectorSingle()
@@ -68,6 +73,9 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
+    double alpha_;
+    std::vector<cv::Vec3d> prev_rvecs_;
+    std::vector<cv::Vec3d> prev_tvecs_;
 
     void readCameraCalibration(const std::string &filename, cv::Mat &camMatrix, cv::Mat &distCoeffs)
     {
@@ -189,6 +197,16 @@ private:
                     continue; // Skip this marker
                 }
 
+                // Apply low-pass filter
+                if (prev_rvecs_.size() > 0 && prev_tvecs_.size() > 0)
+                {
+                    rvecs[i] = alpha_ * rvecs[i] + (1 - alpha_) * prev_rvecs_[0];
+                    tvecs[i] = alpha_ * tvecs[i] + (1 - alpha_) * prev_tvecs_[0];
+                }
+
+                prev_rvecs_[0] = rvecs[i];
+                prev_tvecs_[0] = tvecs[i];
+
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
 
@@ -206,7 +224,6 @@ private:
                 cv::line(frame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2); // Z - Blue
             }
         }
- 
 
         // Start with the origin point (0, 0, 0) in the world frame
         Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
