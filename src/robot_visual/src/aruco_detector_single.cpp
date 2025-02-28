@@ -182,7 +182,18 @@ private:
                 publishTransform(rvecs[i], tvecs[i], marker_id);
 
                 // Draw marker and pose
-                cv::aruco::drawAxis(frame, camMatrix_, distCoeffs_, rvecs[i], tvecs[i], marker_length_ * 1.5f);
+                std::vector<cv::Point3f> axisPoints = {
+                    cv::Point3f(0, 0, 0), // Origin
+                    cv::Point3f(marker_length_ * 1.5f, 0, 0), // X-axis
+                    cv::Point3f(0, marker_length_ * 1.5f, 0), // Y-axis
+                    cv::Point3f(0, 0, marker_length_ * 1.5f)  // Z-axis
+                };
+                std::vector<cv::Point2f> imagePoints;
+                cv::projectPoints(axisPoints, rvecs[i], tvecs[i], camMatrix_, distCoeffs_, imagePoints);
+                cv::line(frame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2); // X - Red
+                cv::line(frame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2); // Y - Green
+                cv::line(frame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2); // Z - Blue
+
             }
         }
 

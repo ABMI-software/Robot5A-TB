@@ -13,11 +13,6 @@ find_package(yaml-cpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 
-
-include_directories(
-  ${ament_index_cpp_INCLUDE_DIRS}
-)
-
 # Add executables
 add_executable(aruco_detector_single src/aruco_detector_single.cpp)
 ament_target_dependencies(aruco_detector_single rclcpp OpenCV tf2_ros Eigen3 yaml-cpp)
@@ -41,6 +36,8 @@ target_link_libraries(aruco_detector_single
   yaml-cpp
   Eigen3::Eigen
 )
+
+target_link_libraries(aruco_detector_single ament_index_cpp::ament_index_cpp)
 
 # Install targets
 install(TARGETS
