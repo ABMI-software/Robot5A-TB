@@ -1,19 +1,47 @@
 
 
 // remove
-sudo apt remove --purge 'libopencv*' python3-opencv
-sudo apt autoremove
+sudo apt remove --autoremove ros-* 
+sudo rm -rf /opt/ros/
+sudo rm -rf ~/.ros/
+sudo apt remove --purge '*opencv*' libopencv* -y
+sudo apt autoremove -y
+sudo apt clean
 
+ros2 --version
+pkg-config --modversion opencv4
 
-// if there are residual install
+sudo rm -rf /usr/local/include/opencv4
+sudo rm -rf /usr/local/lib/libopencv*
+sudo rm -rf /usr/local/lib/cmake/opencv4
+sudo rm -rf /usr/local/share/opencv4
 sudo rm -rf /usr/local/lib/cmake/opencv4
 sudo rm -rf /usr/local/lib/pkgconfig/opencv4.pc
 sudo rm -rf /usr/local/bin/opencv*
+// if there are residual install
 
 // install
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo apt-key add -
+sudo sh -c 'echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list'
+
+
 sudo apt update
-sudo apt install libopencv-dev python3-opencv
-sudo apt install ros-humble-cv-bridge
+sudo apt-get install -y \
+    libgeometric-shapes-dev \
+    meshlab \
+    ros-humble-gazebo-ros-pkgs \
+    ros-humble-gazebo-ros2-control \
+    ros-humble-joint-state-broadcaster \
+    ros-humble-joint-state-publisher \
+    ros-humble-joint-trajectory-controller \
+    ros-humble-moveit \
+    ros-humble-robot-state-publisher \
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    ros-humble-rqt \
+    ros-humble-rqt-graph
+
 
 
 //rosdep
