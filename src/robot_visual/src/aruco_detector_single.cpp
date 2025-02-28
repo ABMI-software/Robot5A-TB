@@ -161,7 +161,7 @@ private:
 
         if (!markerIds.empty())
         {
-            std::vector<cv::Vec3d> rvecs, tvecs;
+            std::vector<cv::Vec3d> rvecs(markerIds.size()), tvecs(markerIds.size());
 
             for (size_t i = 0; i < markerIds.size(); ++i)
             {
@@ -175,8 +175,19 @@ private:
                     cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)  // Point 3
                 };
 
+                // Check if marker corners are valid
+                if (markerCorners[i].size() != 4)
+                {
+                    RCLCPP_WARN(this->get_logger(), "Marker corners not valid for marker ID %d", marker_id);
+                    continue; // Skip this marker
+                }
+
                 // Solve PnP using SOLVEPNP_IPPE_SQUARE
-                cv::solvePnP(markerPoints, markerCorners[i], camMatrix_, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE);
+                if (!cv::solvePnP(markerPoints, markerCorners[i], camMatrix_, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
+                {
+                    RCLCPP_WARN(this->get_logger(), "PnP failed for marker ID %d", marker_id);
+                    continue; // Skip this marker
+                }
 
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
@@ -193,9 +204,9 @@ private:
                 cv::line(frame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2); // X - Red
                 cv::line(frame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2); // Y - Green
                 cv::line(frame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2); // Z - Blue
-
             }
         }
+ 
 
         // Start with the origin point (0, 0, 0) in the world frame
         Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
@@ -270,8 +281,9 @@ private:
         transformStamped.transform.rotation.w = quaternion.w();
 
         tf_broadcaster_.sendTransform(transformStamped);
-        if (marker_id==0 ){
-        tf_detected_publisher_->publish(transformStamped); // Publish detected transform
+        if (marker_id == 0)
+        {
+            tf_detected_publisher_->publish(transformStamped); // Publish detected transform
         }
     }
 };
