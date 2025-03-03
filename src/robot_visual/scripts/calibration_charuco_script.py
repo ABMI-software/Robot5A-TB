@@ -9,7 +9,8 @@ import cv2
 def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, marker_size, output_file):
     # Define Charuco board parameters
     aruco_dict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
-    charuco_board = cv.aruco.CharucoBoard_create(squares_x, squares_y, square_size, marker_size, aruco_dict)
+    charuco_board = cv.aruco.CharucoBoard_create(squares_x - 1, squares_y - 1, square_size, marker_size, aruco_dict)
+
     
     # Storage for object points and image points
     objpoints = []  # 3D points in world coordinates
@@ -38,8 +39,15 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
                 cv.aruco.drawDetectedCornersCharuco(img, charuco_corners, charuco_ids)
                 cv.imshow("Charuco Detection", img)
                 cv.waitKey(500)
+            else:
+                print(f"No valid Charuco corners detected in {fname}.")
+        else:
+            print(f"No Aruco markers detected in {fname}.")
 
     cv.destroyAllWindows()
+
+    print(f"Number of object points: {len(objpoints)}")
+    print(f"Number of image points: {len(imgpoints)}")
 
     # Perform camera calibration
     ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
