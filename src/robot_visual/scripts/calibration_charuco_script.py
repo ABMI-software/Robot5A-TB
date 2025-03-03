@@ -28,7 +28,7 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
 
         if ids is not None and len(ids) > 0:
             # Refine marker corners and detect chessboard corners
-            charuco_corners, charuco_ids, valid = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
+            valid, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
 
             # Ensure charuco_corners is a valid result
             if charuco_corners is not None and isinstance(charuco_corners, np.ndarray) and len(charuco_corners) > 3:
@@ -56,10 +56,18 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
     fs = cv.FileStorage(output_file, cv.FileStorage_WRITE)
     fs.write("camera_matrix", mtx)
     fs.write("distortion_coefficients", dist)
+    fs.write("reprojection_error", calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist))
     fs.release()
 
     print(f"Calibration complete. Parameters saved to {output_file}")
 
+def calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist):
+    total_error = 0
+    for i in range(len(objpoints)):
+        imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+        error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2) / len(imgpoints2)
+        total_error += error
+    return total_error / len(objpoints)
 
 # Configuration for camera 1
 calibrate_camera_charuco(

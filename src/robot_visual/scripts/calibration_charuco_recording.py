@@ -1,6 +1,8 @@
 import cv2
 import os
 
+# Site to do the Charuco https://calib.io/pages/camera-calibration-pattern-generator
+
 # Paths for saving images
 camera_1_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images_charuco"
 
