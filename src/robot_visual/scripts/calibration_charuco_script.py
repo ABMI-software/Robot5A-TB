@@ -65,7 +65,7 @@ def calibrate_and_save_parameters():
     )
 
     # Save calibration parameters
-    fs = cv.FileStorage(output_file, cv.FileStorage_WRITE)
+    fs = cv2.FileStorage(output_file, cv2.FileStorage_WRITE)
     fs.write("camera_matrix", camera_matrix)
     fs.write("distortion_coefficients", dist_coeffs)
     fs.release()
