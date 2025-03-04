@@ -30,7 +30,7 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
             valid, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
 
             # Ensure charuco_corners is a valid result
-            if charuco_corners is not None and isinstance(charuco_corners, np.ndarray) and len(charuco_corners) > 3:
+            if valid:
                 all_charuco_corners.append(charuco_corners)
                 all_charuco_ids.append(charuco_ids)
 
@@ -67,8 +67,8 @@ def calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist):
 # Configuration for camera 1
 calibrate_camera_charuco(
     images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images_charuco/*.jpg",
-    squares_x=6,   # Number of squares along X-axis
-    squares_y=8,   # Number of squares along Y-axis
+    squares_x=8,   # Number of squares along X-axis
+    squares_y=6,   # Number of squares along Y-axis
     square_size=0.04,  # Size of squares in meters
     marker_size=0.03,  # Size of Aruco markers in meters
     output_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml",
