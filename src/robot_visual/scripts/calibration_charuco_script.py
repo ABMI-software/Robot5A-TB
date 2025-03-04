@@ -1,77 +1,75 @@
 import numpy as np
+import cv2 as cv
 import glob
 import cv2
-import os
 
 
 # Site to do the Charuco https://calib.io/pages/camera-calibration-pattern-generator
 
-# ------------------------------
-# ENTER YOUR REQUIREMENTS HERE:
-ARUCO_DICT = cv2.aruco.DICT_6X6_250
-SQUARES_VERTICALLY = 6
-SQUARES_HORIZONTALLY = 8
-SQUARE_LENGTH = 0.04
-MARKER_LENGTH = 0.03
-output_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml",
-PATH_TO_YOUR_IMAGES = '/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images_charuco'
-# ------------------------------
+def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, marker_size, output_file):
+    # Define Charuco board parameters
+    aruco_dict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
+    charuco_board = cv.aruco.CharucoBoard_create(squares_x , squares_y , square_size, marker_size, aruco_dict)
 
-def calibrate_and_save_parameters():
-    # Define the aruco dictionary and charuco board
-    dictionary = cv2.aruco.getPredefinedDictionary(ARUCO_DICT)
-    board = cv2.aruco.CharucoBoard((SQUARES_VERTICALLY, SQUARES_HORIZONTALLY), SQUARE_LENGTH, MARKER_LENGTH, dictionary)
-    params = cv2.aruco.DetectorParameters()
-
-    # Load images
-    image_files = [os.path.join(PATH_TO_YOUR_IMAGES, f) for f in os.listdir(PATH_TO_YOUR_IMAGES) if f.endswith(".jpg")]
-    image_files.sort()
-
-    if not image_files:
-        print("Error: No images found in the specified path.")
-        return
-
-    # Get image size from the first image
-    first_image = cv2.imread(image_files[0])
-    if first_image is None:
-        print("Error: Failed to load the first image.")
-        return
-    image_size = first_image.shape[:2]
-
+    
     all_charuco_corners = []
     all_charuco_ids = []
 
-    for image_file in image_files:
-        image = cv2.imread(image_file)
-        if image is None:
-            print(f"Warning: Failed to load image {image_file}")
-            continue
-        
-        marker_corners, marker_ids, _ = cv2.aruco.detectMarkers(image, dictionary, parameters=params)
-        
-        if marker_ids is not None and len(marker_ids) > 0:
-            charuco_retval, charuco_corners, charuco_ids = cv2.aruco.interpolateCornersCharuco(marker_corners, marker_ids, image, board)
-            if charuco_retval:
+    # Load calibration images
+    images = glob.glob(images_pattern)
+
+    for fname in images:
+        img = cv.imread(fname)
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+        # Detect Aruco markers
+        corners, ids, _ = cv.aruco.detectMarkers(gray, aruco_dict)
+
+        if ids is not None and len(ids) > 0:
+            # Refine marker corners and detect chessboard corners
+            valid, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
+
+            # Ensure charuco_corners is a valid result
+            if charuco_corners is not None and isinstance(charuco_corners, np.ndarray) and len(charuco_corners) > 3:
                 all_charuco_corners.append(charuco_corners)
                 all_charuco_ids.append(charuco_ids)
 
-    if not all_charuco_corners:
-        print("Error: No valid Charuco corners detected for calibration.")
-        return
+                # Draw detected markers and Charuco corners
+                cv.aruco.drawDetectedCornersCharuco(img, charuco_corners, charuco_ids)
+                cv.imshow("Charuco Detection", img)
+                cv.waitKey(500)
+            else:
+                print(f"No valid Charuco corners detected in {fname}.")
+        else:
+            print(f"No Aruco markers detected in {fname}.")
 
-    # Calibrate camera
-    retval, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.aruco.calibrateCameraCharuco(
-        all_charuco_corners, all_charuco_ids, board, image_size, None, None
-    )
+    cv.destroyAllWindows()
+
+    # Perform camera calibration
+    ret, mtx, dist, rvecs, tvecs = cv2.aruco.calibrateCameraCharuco(all_charuco_corners, all_charuco_ids, charuco_board, gray.shape[::-1], None, None)
 
     # Save calibration parameters
-    fs = cv2.FileStorage(output_file, cv2.FileStorage_WRITE)
-    fs.write("camera_matrix", camera_matrix)
-    fs.write("distortion_coefficients", dist_coeffs)
+    fs = cv.FileStorage(output_file, cv.FileStorage_WRITE)
+    fs.write("camera_matrix", mtx)
+    fs.write("distortion_coefficients", dist)
     fs.release()
 
     print(f"Calibration complete. Parameters saved to {output_file}")
 
+def calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist):
+    total_error = 0
+    for i in range(len(objpoints)):
+        imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+        error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2) / len(imgpoints2)
+        total_error += error
+    return total_error / len(objpoints)
 
-
-calibrate_and_save_parameters()
+# Configuration for camera 1
+calibrate_camera_charuco(
+    images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images_charuco/*.jpg",
+    squares_x=6,   # Number of squares along X-axis
+    squares_y=8,   # Number of squares along Y-axis
+    square_size=0.04,  # Size of squares in meters
+    marker_size=0.03,  # Size of Aruco markers in meters
+    output_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml",
+)
