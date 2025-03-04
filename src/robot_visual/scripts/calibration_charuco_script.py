@@ -56,9 +56,28 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
     fs.write("reprojection_error", calculate_reprojection_error(all_charuco_corners, all_charuco_ids, mtx, dist, rvecs, tvecs, charuco_board, square_size))
     fs.release()
 
+    new_origin_transform = np.array([
+        [1, 0, 0, 0.15],  # Move along X (last column)
+        [0, 1, 0, 0.15], # Move along Y (last column)
+        [0, 0, 1, 0],  # Move along Z (last column)
+        [0, 0, 0, 1]
+    ], dtype=np.float32)
+
+    # Apply the transformation
+    transformed_rvecs, transformed_tvecs = transform_camera_pose(rvecs, tvecs, new_origin_transform)
+
 
     # Calculate and print average transformation
-    avg_rvec, avg_tvec, avg_transform = average_rotation_translation(rvecs, tvecs)
+    avg_rvec, avg_tvec, avg_transform = average_rotation_translation(transformed_rvecs, transformed_tvecs)
+
+    print("Average Rotation Vector (rvec):")
+    print(avg_rvec)
+    print("Average Translation Vector (tvec):")
+    print(avg_tvec)
+    
+    print("4x4 Average Transformation matrix (World to Camera):")
+    for i in range(4):
+        print(f"      - {avg_transform[i].tolist()}")
 
 
     # Visualization (optional)
@@ -131,16 +150,43 @@ def average_rotation_translation(rvecs, tvecs):
     transform_4x4[0:3, 0:3] = avg_R_mat
     transform_4x4[0:3, 3] = avg_tvec.flatten()
     
-    print("Average Rotation Vector (rvec):")
-    print(avg_rvec)
-    print("Average Translation Vector (tvec):")
-    print(avg_tvec)
-    
-    print("4x4 Average Transformation matrix (World to Camera):")
-    for i in range(4):
-        print(f"      - {transform_4x4[i].tolist()}")
-    
     return avg_rvec, avg_tvec, transform_4x4
+
+def transform_camera_pose(rvecs, tvecs, new_origin_transform):
+    """
+    Transforms the camera pose (rvecs, tvecs) by applying a new origin transformation.
+    
+    Parameters:
+    - rvecs (list of np.ndarray): List of rotation vectors.
+    - tvecs (list of np.ndarray): List of translation vectors.
+    - new_origin_transform (np.ndarray): 4x4 transformation matrix representing the new origin.
+
+    Returns:
+    - transformed_rvecs: List of transformed rotation vectors.
+    - transformed_tvecs: List of transformed translation vectors.
+    """
+    transformed_rvecs = []
+    transformed_tvecs = []
+
+    R_new_origin = new_origin_transform[:3, :3]  # Rotation part
+    T_new_origin = new_origin_transform[:3, 3]   # Translation part
+
+    for rvec, tvec in zip(rvecs, tvecs):
+        # Convert rotation vector to matrix
+        R_cam, _ = cv2.Rodrigues(rvec)
+
+        # Transform the rotation
+        R_transformed = R_new_origin @ R_cam  # New rotation = R_new_origin * R_cam
+        rvec_transformed, _ = cv2.Rodrigues(R_transformed)
+
+        # Transform the translation
+        tvec_transformed = R_new_origin @ tvec + T_new_origin.reshape(-1, 1)
+
+        transformed_rvecs.append(rvec_transformed)
+        transformed_tvecs.append(tvec_transformed)
+
+    return transformed_rvecs, transformed_tvecs
+
 
 
 def calculate_reprojection_error(all_charuco_corners, all_charuco_ids, mtx, dist, rvecs, tvecs, charuco_board, square_size):
