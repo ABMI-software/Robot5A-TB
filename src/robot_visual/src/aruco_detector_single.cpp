@@ -35,10 +35,34 @@ public:
         }
 
         // Camera settings
-        cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1600);
-        cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 1200);
-        cap_.set(cv::CAP_PROP_FPS, 30);
+        // Set type (MJPG)
         cap_.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+
+        // Set resolution
+        cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+        cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+
+        // Set camera properties
+        cap_.set(cv::CAP_PROP_BRIGHTNESS, 0.5); // Reduce brightness to avoid overexposure
+        cap_.set(cv::CAP_PROP_CONTRAST, 0.7);   // Higher contrast for clear edges
+        cap_.set(cv::CAP_PROP_SATURATION, 0.6);
+        cap_.set(cv::CAP_PROP_SHARPNESS, 4);    // Increase sharpness
+        cap_.set(cv::CAP_PROP_GAMMA, 0.5);      // Adjust gamma to enhance details
+        cap_.set(cv::CAP_PROP_WHITE_BALANCE_BLUE_U, 5000); // Set a neutral white balance (~5000-6000K)
+        cap_.set(cv::CAP_PROP_AUTO_WB, 0);      // Lock white balance
+
+        cap_.set(cv::CAP_PROP_EXPOSURE, -5);    // Lower exposure for better contrast
+
+        // Set frame rate
+        cap_.set(cv::CAP_PROP_FPS, 15);         // Higher FPS can cause motion blur, affecting accuracy
+
+        // Check if the settings were applied
+        double width = cap_.get(cv::CAP_PROP_FRAME_WIDTH);
+        double height = cap_.get(cv::CAP_PROP_FRAME_HEIGHT);
+        double fps = cap_.get(cv::CAP_PROP_FPS);
+
+        std::cout << "Resolution: " << width << "x" << height << std::endl;
+        std::cout << "FPS: " << fps << std::endl;
 
         // Configure ArUco detector parameters
         configureDetectorParameters();
@@ -252,8 +276,8 @@ private:
         cv::circle(frame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
 
         // Resize images
-        int newWidth = 800; 
-        int newHeight = 600; 
+        int newWidth = 1920; 
+        int newHeight = 1080; 
         cv::resize(frame, frame, cv::Size(newWidth, newHeight));
         cv::resize(enhanced, enhanced, cv::Size(newWidth, newHeight));
         cv::resize(binary, binary, cv::Size(newWidth, newHeight));
