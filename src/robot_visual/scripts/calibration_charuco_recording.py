@@ -50,15 +50,18 @@ def main():
     cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     # Set camera properties
-    cap_1.set(cv2.CAP_PROP_BRIGHTNESS, 0.6)   # Value between 0.0 and 1.0
-    cap_1.set(cv2.CAP_PROP_CONTRAST, 0.5)
-    cap_1.set(cv2.CAP_PROP_SATURATION, 0.7)
-    cap_1.set(cv2.CAP_PROP_SHARPNESS, 3)  # Might not work on some cameras
-    cap_1.set(cv2.CAP_PROP_GAMMA, 0.4)
-    cap_1.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, 4000)  # Adjust white balance
+    cap_1.set(cv2.CAP_PROP_BRIGHTNESS, 0.5) # Reduce brightness to avoid overexposure
+    cap_1.set(cv2.CAP_PROP_CONTRAST, 0.7) # Higher contrast for clear edges
+    cap_1.set(cv2.CAP_PROP_SATURATION, 0.6)
+    cap_1.set(cv2.CAP_PROP_SHARPNESS, 4) # Increase sharpness
+    cap_1.set(cv2.CAP_PROP_GAMMA, 0.5) # Adjust gamma to enhance details
+    cap_1.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, 5000) # Set a neutral white balance (~5000-6000K)
+    cap_1.set(cv2.CAP_PROP_AUTO_WB, 0)  # Lock white balance
+
+    cap_1.set(cv2.CAP_PROP_EXPOSURE, -5)  # Lower exposure for better contrast
 
     # Set frame rate
-    cap_1.set(cv2.CAP_PROP_FPS, 15)
+    cap_1.set(cv2.CAP_PROP_FPS, 15) # Higher FPS can cause motion blur, affecting accuracy
 
     # Check if the settings were applied
     width = cap_1.get(cv2.CAP_PROP_FRAME_WIDTH)
