@@ -129,11 +129,11 @@ def transform_camera_pose(rvecs, tvecs, new_origin_transform):
 
     for rvec, tvec in zip(rvecs, tvecs):
         # Convert rotation vector to matrix
-        R_cam, _ = cv2.Rodrigues(rvec)
+        R_cam, _ = cv.Rodrigues(rvec)
 
         # Transform the rotation
         R_transformed = R_new_origin @ R_cam  # New rotation = R_new_origin * R_cam
-        rvec_transformed, _ = cv2.Rodrigues(R_transformed)
+        rvec_transformed, _ = cv.Rodrigues(R_transformed)
 
         # Transform the translation
         tvec_transformed = R_new_origin @ tvec + T_new_origin.reshape(-1, 1)
