@@ -241,6 +241,8 @@ private:
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
 
+
+                // draw axis and marker
                 if (!markerIds.empty())
                 {
                     cv::aruco::drawDetectedMarkers(frame, markerCorners, markerIds); // Draw all detected markers
