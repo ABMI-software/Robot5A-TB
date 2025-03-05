@@ -63,7 +63,7 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
     fs = cv.FileStorage(output_file, cv.FileStorage_WRITE)
     fs.write("camera_matrix", mtx)
     fs.write("distortion_coefficients", dist)
-    fs.write("reprojection_error", reprojection_error)
+    fs.write("reprojection_error in Pixels", reprojection_error)
     fs.release()
 
     print(f"Calibration complete. Parameters saved to {output_file}")
