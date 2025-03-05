@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 import glob
-import cv2
+
 
 
 # Site to do the Charuco https://calib.io/pages/camera-calibration-pattern-generator
@@ -47,7 +47,7 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
 
 
     # Perform camera calibration
-    ret, mtx, dist, rvecs, tvecs = cv2.aruco.calibrateCameraCharuco(all_charuco_corners, all_charuco_ids, charuco_board, gray.shape[::-1], None, None)
+    ret, mtx, dist, rvecs, tvecs = cv.aruco.calibrateCameraCharuco(all_charuco_corners, all_charuco_ids, charuco_board, gray.shape[::-1], None, None)
 
     # Save calibration parameters
     fs = cv.FileStorage(output_file, cv.FileStorage_WRITE)
@@ -88,7 +88,7 @@ def calculate_reprojection_error(all_charuco_corners, all_charuco_ids, mtx, dist
         obj_points = np.float32(obj_points)
         
         # Reproject the 3D object points to 2D image points
-        img_points, _ = cv2.projectPoints(
+        img_points, _ = cv.projectPoints(
             obj_points,
             rvecs[i],
             tvecs[i],
@@ -97,10 +97,10 @@ def calculate_reprojection_error(all_charuco_corners, all_charuco_ids, mtx, dist
         )
         
         # Calculate the Euclidean distance between detected and reprojected points
-        error = cv2.norm(
+        error = cv.norm(
             all_charuco_corners[i],
             img_points,
-            cv2.NORM_L2
+            cv.NORM_L2
         ) / len(img_points)
         
         total_error += error
