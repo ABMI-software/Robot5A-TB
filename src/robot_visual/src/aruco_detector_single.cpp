@@ -77,8 +77,6 @@ public:
 
         // Low-pass filter parameters
         alpha_ = 0.2;
-        prev_rvecs_.resize(1);
-        prev_tvecs_.resize(1);
     }
 
     ~ArucoDetectorSingle()
@@ -98,8 +96,8 @@ private:
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
     double alpha_;
-    std::vector<cv::Vec3d> prev_rvecs_;
-    std::vector<cv::Vec3d> prev_tvecs_;
+    std::unordered_map<int, cv::Vec3d> prev_rvecs_;
+    std::unordered_map<int, cv::Vec3d> prev_tvecs_;
 
     void readCameraCalibration(const std::string &filename, cv::Mat &camMatrix, cv::Mat &distCoeffs)
     {
@@ -221,15 +219,16 @@ private:
                     continue; // Skip this marker
                 }
 
-                // Apply low-pass filter
-                if (prev_rvecs_.size() > 0 && prev_tvecs_.size() > 0)
-                {
-                    rvecs[i] = alpha_ * rvecs[i] + (1 - alpha_) * prev_rvecs_[0];
-                    tvecs[i] = alpha_ * tvecs[i] + (1 - alpha_) * prev_tvecs_[0];
-                }
+                // // Apply low-pass filter
+                // if (prev_rvecs_.size() > 0 && prev_tvecs_.size() > 0)
+                // {
+                //     rvecs[i] = alpha_ * rvecs[i] + (1 - alpha_) * prev_rvecs_[0];
+                //     tvecs[i] = alpha_ * tvecs[i] + (1 - alpha_) * prev_tvecs_[0];
+                // }
 
-                prev_rvecs_[0] = rvecs[i];
-                prev_tvecs_[0] = tvecs[i];
+                // // Store current values for next frame
+                // prev_rvecs_[marker_id] = rvecs[i];
+                // prev_tvecs_[marker_id] = tvecs[i];
 
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);

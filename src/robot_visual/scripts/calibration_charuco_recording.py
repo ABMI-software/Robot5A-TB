@@ -61,7 +61,7 @@ def main():
     cap_1.set(cv2.CAP_PROP_EXPOSURE, -5)  # Lower exposure for better contrast
 
     # Set frame rate
-    cap_1.set(cv2.CAP_PROP_FPS, 15) # Higher FPS can cause motion blur, affecting accuracy
+    cap_1.set(cv2.CAP_PROP_FPS, 15) # Higher FPS can cause motion blur, affecting accuracy/ see our : v4l2-ctl --list-formats-exts
 
     # Check if the settings were applied
     width = cap_1.get(cv2.CAP_PROP_FRAME_WIDTH)
