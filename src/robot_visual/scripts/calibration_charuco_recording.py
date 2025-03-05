@@ -41,12 +41,32 @@ def main():
     if not cap_1.isOpened():
         print("Error: Camera 1 not found.")
         return
-
+    
+    # Set type
+    cap_1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
     # Set resolution
-    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1600)
-    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1200)
+    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
+    # Set camera properties
+    cap_1.set(cv2.CAP_PROP_BRIGHTNESS, 0.6)   # Value between 0.0 and 1.0
+    cap_1.set(cv2.CAP_PROP_CONTRAST, 0.5)
+    cap_1.set(cv2.CAP_PROP_SATURATION, 0.7)
+    cap_1.set(cv2.CAP_PROP_SHARPNESS, 3)  # Might not work on some cameras
+    cap_1.set(cv2.CAP_PROP_GAMMA, 0.4)
+    cap_1.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, 4000)  # Adjust white balance
+
+    # Set frame rate
+    cap_1.set(cv2.CAP_PROP_FPS, 15)
+
+    # Check if the settings were applied
+    width = cap_1.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap_1.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = cap_1.get(cv2.CAP_PROP_FPS)
+
+    print(f"Resolution: {width}x{height}")
+    print(f"FPS: {fps}")
 
     print("Press 'a' to save a picture from Camera 1.")
 
