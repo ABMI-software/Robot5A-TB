@@ -62,8 +62,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Define a new origin transformation (example)
     new_origin_transform = np.array([
-        [1, 0, 0, 0],  # Move along X (last column)
-        [0, 1, 0, 0],  # Move along Y (last column)
+        [1, 0, 0, 0.36],  # Move along X (last column)
+        [0, 1, 0, 0.03],  # Move along Y (last column)
         [0, 0, 1, 0],  # Move along Z (last column)
         [0, 0, 0, 1]
     ], dtype=np.float32)
@@ -73,6 +73,12 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Compute average pose
     avg_rvec, avg_tvec, avg_transform = average_rotation_translation(transformed_rvecs, transformed_tvecs)
+
+    # Draw the detected board and axis
+    cv.aruco.drawDetectedMarkers(img, corners, ids)
+    drawAxis(img, mtx, dist, avg_rvec, avg_tvec, marker_size * 1.5)
+    cv.imshow("Detected Charuco Board", img)
+    cv.waitKey(5000)  # Show each image for 5s
 
     print("\n=== Average Pose (World to Camera) ===")
     print(f"Rotation Vector (rvec):\n{avg_rvec}")
