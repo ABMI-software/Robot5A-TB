@@ -241,7 +241,11 @@ private:
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
 
-                // Draw marker and pose
+                if (!markerIds.empty())
+                {
+                    cv::aruco::drawDetectedMarkers(frame, markerCorners, markerIds); // Draw all detected markers
+                }
+
                 std::vector<cv::Point3f> axisPoints = {
                     cv::Point3f(0, 0, 0), // Origin
                     cv::Point3f(marker_length_ * 1.5f, 0, 0), // X-axis
