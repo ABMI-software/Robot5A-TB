@@ -96,8 +96,7 @@ private:
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
     double alpha_;
-    std::unordered_map<int, cv::Vec3d> prev_rvecs_;
-    std::unordered_map<int, cv::Vec3d> prev_tvecs_;
+
 
     void readCameraCalibration(const std::string &filename, cv::Mat &camMatrix, cv::Mat &distCoeffs)
     {
@@ -193,6 +192,10 @@ private:
         {
             std::vector<cv::Vec3d> rvecs(markerIds.size()), tvecs(markerIds.size());
 
+            // Previous tvec and rvec for comparison
+            static std::vector<cv::Vec3d> previous_tvecs(100, cv::Vec3d(0, 0, 0)); // Adjust size (100) as needed
+            static std::vector<cv::Vec3d> previous_rvecs(100, cv::Vec3d(0, 0, 0)); // Adjust size (100) as needed
+
             for (size_t i = 0; i < markerIds.size(); ++i)
             {
                 int marker_id = markerIds[i];
@@ -220,15 +223,20 @@ private:
                 }
 
                 // // Apply low-pass filter
-                // if (prev_rvecs_.size() > 0 && prev_tvecs_.size() > 0)
-                // {
-                //     rvecs[i] = alpha_ * rvecs[i] + (1 - alpha_) * prev_rvecs_[0];
-                //     tvecs[i] = alpha_ * tvecs[i] + (1 - alpha_) * prev_tvecs_[0];
-                // }
+                cv::Vec3d current_tvec = tvecs[i];
+                cv::Vec3d previous_tvec = previous_tvecs[marker_id];
+                cv::Vec3d current_rvec = rvecs[i];
+                cv::Vec3d previous_rvec = previous_rvecs[marker_id];
 
-                // // Store current values for next frame
-                // prev_rvecs_[marker_id] = rvecs[i];
-                // prev_tvecs_[marker_id] = tvecs[i];
+                if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
+                {
+                    rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
+                    tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
+                }
+
+                // Store current values for next frame
+                previous_rvecs[marker_id] = rvecs[i];
+                previous_tvecs[marker_id] = tvecs[i];
 
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
