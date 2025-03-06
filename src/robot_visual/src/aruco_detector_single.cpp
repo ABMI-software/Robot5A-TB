@@ -161,7 +161,7 @@ private:
 
     void processFrame()
     {
-        cv::Mat frame, gray, filtered, enhanced;
+        cv::Mat frame, gray, filtered, enhanced, undistortedFrame;
 
         cap_ >> frame;
         if (frame.empty())
@@ -170,8 +170,11 @@ private:
             return;
         }
 
+        // Undistort the frame
+        cv::undistort(frame, undistortedFrame, camMatrix_, distCoeffs_);
+
         // Convert to grayscale
-        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
 
         // Reduce noise while preserving edges
         cv::bilateralFilter(gray, filtered, 3, 75, 20);
