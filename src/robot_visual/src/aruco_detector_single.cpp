@@ -171,7 +171,16 @@ private:
         }
 
         // Undistort the frame
-        cv::undistort(frame, undistortedFrame, camMatrix_, distCoeffs_);
+
+        // Extract height and width from the image
+        int height = frame.rows;
+        int width = frame.cols;
+
+        // Get the optimal new camera matrix
+        cv::Mat camMatrixNew;
+        cv::Rect roi;
+        camMatrixNew = cv::getOptimalNewCameraMatrix(camMatrix_, distCoeffs_, cv::Size(width, height), 1, cv::Size(width, height), &roi);
+        cv::undistort(frame, undistortedFrame, camMatrixNew, distCoeffs_);
 
         // Convert to grayscale
         cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
