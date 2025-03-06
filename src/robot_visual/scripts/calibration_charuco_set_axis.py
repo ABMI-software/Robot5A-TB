@@ -89,7 +89,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     cv.destroyAllWindows()
 
-    # Define a new origin transformation (example)
+    # Define a new origin transformation (example: https://dugas.ch/transform_viewer/index.html) 
     new_origin_transform = np.array([
         [1, 0, 0, 0.36],  # Move along X (last column)
         [0, 1, 0, 0.03],  # Move along Y (last column)
