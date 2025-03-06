@@ -13,4 +13,4 @@ distortion_coefficients: !!opencv-matrix
    data: [ 1.5654382334444183e-01, 5.2441884237775338e-01,
        -3.9950426133441635e-03, -1.7843146059816326e-05,
        -8.0716783817406110e+00 ]
-reprojection_error: 2.2969498023152206e+00
+reprojection_error in Pixels: 2.2969498023152206e+00

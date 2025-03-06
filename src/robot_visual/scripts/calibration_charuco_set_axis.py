@@ -5,16 +5,42 @@ import glob
 def load_camera_parameters(filename):
     """Load previously saved camera matrix and distortion coefficients."""
     fs = cv.FileStorage(filename, cv.FILE_STORAGE_READ)
+
+    if not fs.isOpened():
+        print(f"Error: Unable to open {filename}")
+        return None, None
+
     mtx = fs.getNode("camera_matrix").mat()
-    dist = fs.getNode("dist_coeff").mat()
+    dist = fs.getNode("distortion_coefficients").mat()  # Check YAML key name
+
     fs.release()
+
+    # Debugging output
+    print(f"Loaded Camera Matrix: {mtx}")
+    print(f"Loaded Distortion Coefficients: {dist}")
+
+    if mtx is None or dist is None:
+        print("Error: Camera parameters not loaded correctly.")
+        return None, None
+
     return mtx, dist
+
 
 def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, square_size, marker_size, calibration_file):
     """Detect Charuco board and estimate pose with correct transformations."""
     
     # Load camera parameters
     mtx, dist = load_camera_parameters(calibration_file)
+
+    dist = np.array(dist, dtype=np.float64)
+
+    # Ensure it's a single-row or single-column vector
+    if dist.shape == (1, 5):  # Convert to column vector
+        dist = dist.T
+    elif dist.shape == (5,):  # Reshape to (5,1)
+        dist = dist.reshape(-1, 1)
+
+    print(f"Fixed Distortion Coefficients Shape: {dist.shape}") 
 
     # Define Charuco board
     aruco_dict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
@@ -28,7 +54,10 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     for fname in images:
         img = cv.imread(fname)
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        height, width = img.shape[:2]  # Extract height and width
+        camMatrixNew,roi = cv.getOptimalNewCameraMatrix(mtx, dist, (width,height), 1, (width,height))
+        imgUndist = cv.undistort(img, mtx, dist, None, camMatrixNew)
+        gray = cv.cvtColor(imgUndist, cv.COLOR_BGR2GRAY)
 
         # Detect Aruco markers
         corners, ids, _ = cv.aruco.detectMarkers(gray, aruco_dict)
