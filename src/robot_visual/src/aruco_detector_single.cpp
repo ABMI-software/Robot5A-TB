@@ -234,17 +234,17 @@ private:
                     continue; // Skip this marker
                 }
 
-                // // Apply low-pass filter
-                cv::Vec3d current_tvec = tvecs[i];
-                cv::Vec3d previous_tvec = previous_tvecs[marker_id];
-                cv::Vec3d current_rvec = rvecs[i];
-                cv::Vec3d previous_rvec = previous_rvecs[marker_id];
+                // // // Apply low-pass filter
+                // cv::Vec3d current_tvec = tvecs[i];
+                // cv::Vec3d previous_tvec = previous_tvecs[marker_id];
+                // cv::Vec3d current_rvec = rvecs[i];
+                // cv::Vec3d previous_rvec = previous_rvecs[marker_id];
 
-                if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
-                {
-                    rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
-                    tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
-                }
+                // if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
+                // {
+                //     rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
+                //     tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
+                // }
 
                 // Store current values for next frame
                 previous_rvecs[marker_id] = rvecs[i];

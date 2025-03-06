@@ -119,7 +119,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 def drawAxis(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     """Draws XYZ coordinate axes on the detected Charuco board."""
     axis_points = np.float32([
-        [0, 0, 0], [length, 0, 0], [0, length, 0], [0, 0, -length]
+        [0, 0, 0], [length, 0, 0], [0, length, 0], [0, 0, length]
     ]).reshape(-1, 3)
     
     img_points, _ = cv.projectPoints(axis_points, rvec, tvec, camera_matrix, dist_coeffs)
