@@ -36,11 +36,11 @@ public:
 
         // Camera settings
         // Set type (MJPG)
-        cap_.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+        cap_.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('Y', 'U', 'Y', 'V'));
 
         // Set resolution
-        cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
-        cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+        cap_.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+        cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 
         // Set camera properties
         cap_.set(cv::CAP_PROP_BRIGHTNESS, 0.5); // Reduce brightness to avoid overexposure
@@ -198,7 +198,18 @@ private:
         // Detect markers
         std::vector<int> markerIds;
         std::vector<std::vector<cv::Point2f>> markerCorners;
-        cv::aruco::detectMarkers(frame, dictionary_, markerCorners, markerIds, detectorParams_);
+        cv::aruco::detectMarkers(gray, dictionary_, markerCorners, markerIds, detectorParams_);
+
+
+        // Refine corner locations to sub-pixel accuracy (optional)
+        if (!markerCorners.empty()) {
+        cv::TermCriteria criteria(
+            cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
+        for (auto &corners : markerCorners) {
+            cv::cornerSubPix(gray, corners, cv::Size(5, 5), cv::Size(-1, -1),
+                            criteria);
+        }
+        }
 
         if (!markerIds.empty())
         {
@@ -234,17 +245,17 @@ private:
                     continue; // Skip this marker
                 }
 
-                // // // Apply low-pass filter
-                // cv::Vec3d current_tvec = tvecs[i];
-                // cv::Vec3d previous_tvec = previous_tvecs[marker_id];
-                // cv::Vec3d current_rvec = rvecs[i];
-                // cv::Vec3d previous_rvec = previous_rvecs[marker_id];
+                // // Apply low-pass filter
+                cv::Vec3d current_tvec = tvecs[i];
+                cv::Vec3d previous_tvec = previous_tvecs[marker_id];
+                cv::Vec3d current_rvec = rvecs[i];
+                cv::Vec3d previous_rvec = previous_rvecs[marker_id];
 
-                // if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
-                // {
-                //     rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
-                //     tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
-                // }
+                if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
+                {
+                    rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
+                    tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
+                }
 
                 // Store current values for next frame
                 previous_rvecs[marker_id] = rvecs[i];
@@ -255,10 +266,9 @@ private:
 
 
                 // draw axis and marker
-                if (!markerIds.empty())
-                {
-                    cv::aruco::drawDetectedMarkers(frame, markerCorners, markerIds); // Draw all detected markers
-                }
+                
+                cv::aruco::drawDetectedMarkers(undistortedFrame, markerCorners, markerIds); // Draw all detected markers
+                
 
                 std::vector<cv::Point3f> axisPoints = {
                     cv::Point3f(0, 0, 0), // Origin
@@ -268,9 +278,9 @@ private:
                 };
                 std::vector<cv::Point2f> imagePoints;
                 cv::projectPoints(axisPoints, rvecs[i], tvecs[i], camMatrix_, distCoeffs_, imagePoints);
-                cv::line(frame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2); // X - Red
-                cv::line(frame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2); // Y - Green
-                cv::line(frame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2); // Z - Blue
+                cv::line(undistortedFrame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2); // X - Red
+                cv::line(undistortedFrame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2); // Y - Green
+                cv::line(undistortedFrame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2); // Z - Blue
             }
         }
 
@@ -298,17 +308,17 @@ private:
         int pixel_y = static_cast<int>(pixel_point_homogeneous(1));
 
         // Draw the origin point on the frame
-        cv::circle(frame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
+        cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
 
         // Resize images
-        int newWidth = 1920; 
-        int newHeight = 1080; 
+        int newWidth = width; 
+        int newHeight = height; 
         cv::resize(frame, frame, cv::Size(newWidth, newHeight));
         cv::resize(enhanced, enhanced, cv::Size(newWidth, newHeight));
         cv::resize(binary, binary, cv::Size(newWidth, newHeight));
 
         // Visualize results
-        cv::imshow("Original Frame", frame);
+        cv::imshow("Original Frame", undistortedFrame);
         // cv::imshow("Enhanced", enhanced);
         // cv::imshow("Binary", binary);
         cv::waitKey(1);

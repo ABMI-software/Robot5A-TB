@@ -67,6 +67,16 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
             valid, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
 
             if valid:
+
+                # Define termination criteria for corner refinement
+                criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+                # Refine Charuco corners
+                charuco_corners = cv.cornerSubPix(
+                    gray, charuco_corners, winSize=(5, 5), zeroZone=(-1, -1), criteria=criteria
+                )
+
+
                 # **Estimate pose of the Charuco board**
                 success, rvecs, tvecs = cv.aruco.estimatePoseCharucoBoard(
                     charuco_corners, charuco_ids, charuco_board, mtx, dist, None, None
@@ -77,9 +87,9 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
                     all_tvecs.append(tvecs)
                     
                     # Draw the detected board and axis
-                    cv.aruco.drawDetectedMarkers(img, corners, ids)
-                    drawAxis(img, mtx, dist, rvecs, tvecs, marker_size * 1.5)
-                    cv.imshow("Detected Charuco Board", img)
+                    cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
+                    drawAxis(imgUndist, mtx, dist, rvecs, tvecs, marker_size * 1.5)
+                    cv.imshow("Detected Charuco Board", imgUndist)
                     cv.waitKey(500)  # Show each image for 0.5s
 
             else:
@@ -104,9 +114,9 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
     avg_rvec, avg_tvec, avg_transform = average_rotation_translation(transformed_rvecs, transformed_tvecs)
 
     # Draw the detected board and axis
-    cv.aruco.drawDetectedMarkers(img, corners, ids)
-    drawAxis(img, mtx, dist, avg_rvec, avg_tvec, marker_size * 1.5)
-    cv.imshow("Detected Charuco Board", img)
+    cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
+    drawAxis(imgUndist, mtx, dist, avg_rvec, avg_tvec, marker_size * 1.5)
+    cv.imshow("Detected Charuco Board", imgUndist)
     cv.waitKey(5000)  # Show each image for 5s
 
     print("\n=== Average Pose (World to Camera) ===")

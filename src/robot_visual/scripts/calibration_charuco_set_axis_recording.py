@@ -1,5 +1,6 @@
 import cv2
 import os
+import numpy as np
 
 # Site to do the Charuco https://calib.io/pages/camera-calibration-pattern-generator
 
@@ -33,6 +34,16 @@ def main():
 
     print(f"Starting from index {camera_1_count} for Camera 1.")
 
+    calibration_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml"
+    mtx, dist = load_camera_parameters(calibration_file)
+
+    dist = np.array(dist, dtype=np.float64)
+
+    # Ensure it's a single-row or single-column vector
+    if dist.shape == (1, 5):  # Convert to column vector
+        dist = dist.T
+    elif dist.shape == (5,):  # Reshape to (5,1)
+        dist = dist.reshape(-1, 1)
 
     # Open cameras
     cap_1 = cv2.VideoCapture(4)  # First camera
@@ -43,11 +54,11 @@ def main():
         return
     
     # Set type
-    cap_1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+    cap_1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'YUYV'))
 
     # Set resolution
-    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     # Set camera properties
     cap_1.set(cv2.CAP_PROP_BRIGHTNESS, 0.5) # Reduce brightness to avoid overexposure
@@ -61,7 +72,7 @@ def main():
     cap_1.set(cv2.CAP_PROP_EXPOSURE, -5)  # Lower exposure for better contrast
 
     # Set frame rate
-    cap_1.set(cv2.CAP_PROP_FPS, 15) # Higher FPS can cause motion blur, affecting accuracy
+    cap_1.set(cv2.CAP_PROP_FPS, 30) # Higher FPS can cause motion blur, affecting accuracy
 
     # Check if the settings were applied
     width = cap_1.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -78,10 +89,14 @@ def main():
     while True:
         # Capture frames from both cameras
         ret_1, frame_1 = cap_1.read()
+        height, width = frame_1.shape[:2]  # Extract height and width
+        camMatrixNew,roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (width,height), 1, (width,height))
+        imgUndist = cv2.undistort(frame_1, mtx, dist, None, camMatrixNew)
+
 
 
         if ret_1:
-            cv2.imshow("Camera 1", frame_1)
+            cv2.imshow("Camera 1", imgUndist)
         else:
             print("Warning: Empty frame from Camera 1.")
 
@@ -91,7 +106,7 @@ def main():
         key = cv2.waitKey(1) & 0xFF
         if key == ord('a'):  # Save image from Camera 1
             filename = os.path.join(camera_1_path, f"camera_1_{camera_1_count:03d}.jpg")
-            cv2.imwrite(filename, frame_1)
+            cv2.imwrite(filename, imgUndist)
             print(f"Saved: {filename}")
             camera_1_count += 1
 
@@ -105,6 +120,30 @@ def main():
     cap_1.release()
 
     cv2.destroyAllWindows()
+
+
+def load_camera_parameters(filename):
+    """Load previously saved camera matrix and distortion coefficients."""
+    fs = cv2.FileStorage(filename, cv2.FILE_STORAGE_READ)
+
+    if not fs.isOpened():
+        print(f"Error: Unable to open {filename}")
+        return None, None
+
+    mtx = fs.getNode("camera_matrix").mat()
+    dist = fs.getNode("distortion_coefficients").mat()  # Check YAML key name
+
+    fs.release()
+
+    # Debugging output
+    print(f"Loaded Camera Matrix: {mtx}")
+    print(f"Loaded Distortion Coefficients: {dist}")
+
+    if mtx is None or dist is None:
+        print("Error: Camera parameters not loaded correctly.")
+        return None, None
+
+    return mtx, dist
 
 if __name__ == "__main__":
     main()

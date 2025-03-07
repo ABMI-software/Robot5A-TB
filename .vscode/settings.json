@@ -73,6 +73,7 @@
         "strstream": "cpp",
         "regex": "cpp",
         "shared_mutex": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "*.ipp": "cpp"
     }
 }

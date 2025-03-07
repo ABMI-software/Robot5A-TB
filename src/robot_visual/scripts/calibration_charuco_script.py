@@ -34,6 +34,13 @@ def calibrate_camera_charuco(images_pattern, squares_x, squares_y, square_size, 
             valid, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(corners, ids, gray, charuco_board)
 
             if valid:
+                    # Define termination criteria for corner refinement
+                criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+                # Refine Charuco corners
+                charuco_corners = cv.cornerSubPix(
+                    gray, charuco_corners, winSize=(5, 5), zeroZone=(-1, -1), criteria=criteria
+                )
                 all_charuco_corners.append(charuco_corners)
                 all_charuco_ids.append(charuco_ids)
                 

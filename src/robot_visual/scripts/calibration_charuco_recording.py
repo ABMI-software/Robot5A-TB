@@ -43,11 +43,11 @@ def main():
         return
     
     # Set type
-    cap_1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+    cap_1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'YUYV'))
 
     # Set resolution
-    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap_1.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap_1.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     # Set camera properties
     cap_1.set(cv2.CAP_PROP_BRIGHTNESS, 0.5) # Reduce brightness to avoid overexposure
@@ -61,7 +61,7 @@ def main():
     cap_1.set(cv2.CAP_PROP_EXPOSURE, -5)  # Lower exposure for better contrast
 
     # Set frame rate
-    cap_1.set(cv2.CAP_PROP_FPS, 15) # Higher FPS can cause motion blur, affecting accuracy/ see our : v4l2-ctl --list-formats-exts
+    cap_1.set(cv2.CAP_PROP_FPS, 30) # Higher FPS can cause motion blur, affecting accuracy/ see our : v4l2-ctl --list-formats-exts
 
     # Check if the settings were applied
     width = cap_1.get(cv2.CAP_PROP_FRAME_WIDTH)
