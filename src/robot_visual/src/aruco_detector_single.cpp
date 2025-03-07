@@ -6,6 +6,7 @@
 #include <opencv2/aruco.hpp>
 #include <opencv2/opencv.hpp>
 #include <yaml-cpp/yaml.h>
+#include <unordered_map>
 
 class ArucoDetectorSingle : public rclcpp::Node
 {
@@ -75,8 +76,6 @@ public:
             std::chrono::milliseconds(33), // Approx. 30fps
             std::bind(&ArucoDetectorSingle::processFrame, this));
 
-        // Low-pass filter parameters
-        alpha_ = 0.2;
     }
 
     ~ArucoDetectorSingle()
@@ -95,7 +94,13 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
-    double alpha_;
+    
+
+    // Store first detected values
+    std::unordered_map<int, bool> first_detection;
+    std::unordered_map<int, cv::Vec3d> first_tvecs;
+    std::unordered_map<int, cv::Vec3d> first_rvecs;
+    std::unordered_set<int> previously_detected_markers;
 
 
     void readCameraCalibration(const std::string &filename, cv::Mat &camMatrix, cv::Mat &distCoeffs)
@@ -211,25 +216,32 @@ private:
         }
         }
 
+        std::unordered_set<int> currently_detected_markers(markerIds.begin(), markerIds.end());
+
+        // Find markers that were previously detected but are now missing
+        for (int prev_marker : previously_detected_markers)
+        {
+            if (currently_detected_markers.find(prev_marker) == currently_detected_markers.end())
+            {
+                RCLCPP_WARN(this->get_logger(), "Marker %d lost, reinitializing.", prev_marker);
+                first_detection.erase(prev_marker);
+                first_tvecs.erase(prev_marker);
+                first_rvecs.erase(prev_marker);
+            }
+        }
+
+        // Update previously detected markers
+        previously_detected_markers = currently_detected_markers;
+
+
         if (!markerIds.empty())
         {
             std::vector<cv::Vec3d> rvecs(markerIds.size()), tvecs(markerIds.size());
 
-            // Previous tvec and rvec for comparison
-            static std::vector<cv::Vec3d> previous_tvecs(100, cv::Vec3d(0, 0, 0)); // Adjust size (100) as needed
-            static std::vector<cv::Vec3d> previous_rvecs(100, cv::Vec3d(0, 0, 0)); // Adjust size (100) as needed
 
             for (size_t i = 0; i < markerIds.size(); ++i)
             {
                 int marker_id = markerIds[i];
-
-                // Define the 3D points of the marker corners in the marker's local coordinate system
-                std::vector<cv::Point3f> markerPoints = {
-                    cv::Point3f(-marker_length_ / 2, marker_length_ / 2, 0),  // Point 0
-                    cv::Point3f(marker_length_ / 2, marker_length_ / 2, 0),   // Point 1
-                    cv::Point3f(marker_length_ / 2, -marker_length_ / 2, 0),  // Point 2
-                    cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)  // Point 3
-                };
 
                 // Check if marker corners are valid
                 if (markerCorners[i].size() != 4)
@@ -239,27 +251,62 @@ private:
                 }
 
                 // Solve PnP using SOLVEPNP_IPPE_SQUARE
+                // Define the 3D points of the marker corners in the marker's local coordinate system
+                std::vector<cv::Point3f> markerPoints = {
+                    cv::Point3f(-marker_length_ / 2, marker_length_ / 2, 0),  // Point 0
+                    cv::Point3f(marker_length_ / 2, marker_length_ / 2, 0),   // Point 1
+                    cv::Point3f(marker_length_ / 2, -marker_length_ / 2, 0),  // Point 2
+                    cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)  // Point 3
+                };
+
                 if (!cv::solvePnP(markerPoints, markerCorners[i], camMatrix_, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
                 {
                     RCLCPP_WARN(this->get_logger(), "PnP failed for marker ID %d", marker_id);
                     continue; // Skip this marker
                 }
 
-                // // Apply low-pass filter
-                cv::Vec3d current_tvec = tvecs[i];
-                cv::Vec3d previous_tvec = previous_tvecs[marker_id];
-                cv::Vec3d current_rvec = rvecs[i];
-                cv::Vec3d previous_rvec = previous_rvecs[marker_id];
-
-                if (previous_tvecs.size() > 0 && previous_rvecs.size() > 0)
+                // Check if this is the first time the marker is detected
+                if (first_detection.count(marker_id) == 0) // Correct way to check if a key exists
                 {
-                    rvecs[i] = alpha_ * current_rvec + (1 - alpha_) * previous_rvec;
-                    tvecs[i] = alpha_ * current_tvec + (1 - alpha_) * previous_tvec;
+                    first_detection[marker_id] = true;
+                    first_tvecs[marker_id] = tvecs[i];
+                    first_rvecs[marker_id] = rvecs[i];
+                }
+                else
+                {
+                    // Apply filtering only for subsequent detections
+                    // Define thresholds for translation and rotation
+                    const double translation_threshold = 0.5; // threshold for translation
+                    const double rotation_threshold = 0.5; // threshold for rotation (in radians)
+
+                    cv::Vec3d previous_tvec = first_tvecs[marker_id];
+                    cv::Vec3d previous_rvec = first_rvecs[marker_id];
+
+                    bool should_update = false;
+
+                    if (std::abs(tvecs[i][0] - previous_tvec[0]) < translation_threshold &&
+                        std::abs(tvecs[i][1] - previous_tvec[1]) < translation_threshold &&
+                        std::abs(tvecs[i][2] - previous_tvec[2]) < translation_threshold &&
+                        std::abs(rvecs[i][0] - previous_rvec[0]) < rotation_threshold &&
+                        std::abs(rvecs[i][1] - previous_rvec[1]) < rotation_threshold &&
+                        std::abs(rvecs[i][2] - previous_rvec[2]) < rotation_threshold)
+                    {
+                        should_update = true;
+                    }
+
+                    if (should_update)
+                    {
+                        first_tvecs[marker_id] = tvecs[i];
+                        first_rvecs[marker_id] = rvecs[i];
+                    }
+                    else
+                    {
+                        tvecs[i] = first_tvecs[marker_id];
+                        rvecs[i] = first_rvecs[marker_id];
+                    }
                 }
 
-                // Store current values for next frame
-                previous_rvecs[marker_id] = rvecs[i];
-                previous_tvecs[marker_id] = tvecs[i];
+
 
                 // Publish transforms
                 publishTransform(rvecs[i], tvecs[i], marker_id);
