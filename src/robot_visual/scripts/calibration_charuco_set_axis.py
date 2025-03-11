@@ -79,7 +79,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
                 # **Estimate pose of the Charuco board**
                 success, rvecs, tvecs = cv.aruco.estimatePoseCharucoBoard(
-                    charuco_corners, charuco_ids, charuco_board, mtx, dist, None, None
+                    charuco_corners, charuco_ids, charuco_board, camMatrixNew, dist, None, None
                 )
                 
                 if success:
@@ -88,7 +88,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
                     
                     # Draw the detected board and axis
                     cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
-                    drawAxis(imgUndist, mtx, dist, rvecs, tvecs, marker_size * 1.5)
+                    drawAxis(imgUndist, camMatrixNew, dist, rvecs, tvecs, marker_size * 1.5)
                     cv.imshow("Detected Charuco Board", imgUndist)
                     cv.waitKey(500)  # Show each image for 0.5s
 
@@ -101,8 +101,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Define a new origin transformation (example: https://dugas.ch/transform_viewer/index.html) 
     new_origin_transform = np.array([
-        [1, 0, 0, 0.35],  # Move along X (last column)
-        [0, 1, 0, 0.35],  # Move along Y (last column)
+        [1, 0, 0, 0],  # Move along X (last column)
+        [0, 1, 0, 0],  # Move along Y (last column)
         [0, 0, 1, 0],  # Move along Z (last column)
         [0, 0, 0, 1]
     ], dtype=np.float32)
@@ -115,7 +115,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Draw the detected board and axis
     cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
-    drawAxis(imgUndist, mtx, dist, avg_rvec, avg_tvec, marker_size * 1.5)
+    drawAxis(imgUndist, camMatrixNew, dist, avg_rvec, avg_tvec, marker_size * 1.5)
     cv.imshow("Detected Charuco Board", imgUndist)
     cv.waitKey(5000)  # Show each image for 5s
 

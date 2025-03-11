@@ -259,7 +259,7 @@ private:
                     cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)  // Point 3
                 };
 
-                if (!cv::solvePnP(markerPoints, markerCorners[i], camMatrix_, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
+                if (!cv::solvePnP(markerPoints, markerCorners[i], camMatrixNew, distCoeffs_, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
                 {
                     RCLCPP_WARN(this->get_logger(), "PnP failed for marker ID %d", marker_id);
                     continue; // Skip this marker
@@ -354,9 +354,9 @@ private:
 
         // Convert camMatrix_ from cv::Mat to Eigen::Matrix3d
         Eigen::Matrix3d camMatrix_eigen;
-        camMatrix_eigen << camMatrix_.at<double>(0, 0), camMatrix_.at<double>(0, 1), camMatrix_.at<double>(0, 2),
-                        camMatrix_.at<double>(1, 0), camMatrix_.at<double>(1, 1), camMatrix_.at<double>(1, 2),
-                        camMatrix_.at<double>(2, 0), camMatrix_.at<double>(2, 1), camMatrix_.at<double>(2, 2);
+        camMatrix_eigen << camMatrixNew.at<double>(0, 0), camMatrixNew.at<double>(0, 1), camMatrixNew.at<double>(0, 2),
+                        camMatrixNew.at<double>(1, 0), camMatrixNew.at<double>(1, 1), camMatrixNew.at<double>(1, 2),
+                        camMatrixNew.at<double>(2, 0), camMatrixNew.at<double>(2, 1), camMatrixNew.at<double>(2, 2);
 
         // Project to pixel coordinates
         Eigen::Vector3d pixel_point_homogeneous = camMatrix_eigen * projected_point; // Perform the multiplication
