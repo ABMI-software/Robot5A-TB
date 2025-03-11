@@ -265,7 +265,19 @@ private:
                     continue; // Skip this marker
                 }
 
+                // if (marker_id == 0){
+                // // Log the translation vector for the current marker
+                // RCLCPP_INFO(this->get_logger(), "Translation vector for marker %d: [%f, %f, %f]",
+                //     marker_id, tvecs[i][0], tvecs[i][1], tvecs[i][2]);
+
+
+                // // Log the rotation vector for the current marker
+                // RCLCPP_INFO(this->get_logger(), "Rotation    vector for marker %d: [%f, %f, %f]",
+                //     marker_id, rvecs[i][0], rvecs[i][1], rvecs[i][2]);
+                // }
+
                 // Check if this is the first time the marker is detected
+                
                 if (first_detection.count(marker_id) == 0) // Correct way to check if a key exists
                 {
                     first_detection[marker_id] = true;
@@ -276,8 +288,8 @@ private:
                 {
                     // Apply filtering only for subsequent detections
                     // Define thresholds for translation and rotation
-                    const double translation_threshold = 0.5; // threshold for translation
-                    const double rotation_threshold = 0.5; // threshold for rotation (in radians)
+                    const double translation_threshold = 1.0; // threshold for translation
+                    const double rotation_threshold = 1.0; // threshold for rotation (in radians)
 
                     cv::Vec3d previous_tvec = first_tvecs[marker_id];
                     cv::Vec3d previous_rvec = first_rvecs[marker_id];
