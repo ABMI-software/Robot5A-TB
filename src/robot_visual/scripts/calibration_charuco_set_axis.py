@@ -101,8 +101,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Define a new origin transformation (example: https://dugas.ch/transform_viewer/index.html) 
     new_origin_transform = np.array([
-        [1, 0, 0, 0],  # Move along X (last column)
-        [0, 1, 0, 0],  # Move along Y (last column)
+        [1, 0, 0, 0.3],  # Move along X (last column)
+        [0, 1, 0, 0.3],  # Move along Y (last column)
         [0, 0, 1, 0],  # Move along Z (last column)
         [0, 0, 0, 1]
     ], dtype=np.float32)
@@ -176,12 +176,17 @@ def transform_camera_pose(rvecs, tvecs, new_origin_transform):
         # Convert rotation vector to matrix
         R_cam, _ = cv.Rodrigues(rvec)
 
-        # Transform the rotation
-        R_transformed = R_new_origin @ R_cam  # New rotation = R_new_origin * R_cam
-        rvec_transformed, _ = cv.Rodrigues(R_transformed)
+        transform_4x4 = np.eye(4, dtype=np.float32)
+        transform_4x4[0:3, 0:3] = R_cam
+        transform_4x4[0:3, 3] = tvec.flatten()
 
-        # Transform the translation
-        tvec_transformed = R_new_origin @ tvec + T_new_origin.reshape(-1, 1)
+        cam_to_rep = transform_4x4 @ new_origin_transform; 
+
+        rvec_transformed_rod = cam_to_rep[:3, :3]  # Rotation part
+        tvec_transformed = cam_to_rep[:3, 3]   # Translation part
+
+        # Convert rotation vector to matrix
+        rvec_transformed, _ = cv.Rodrigues(rvec_transformed_rod)
 
         transformed_rvecs.append(rvec_transformed)
         transformed_tvecs.append(tvec_transformed)
