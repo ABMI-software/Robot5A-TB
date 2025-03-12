@@ -398,7 +398,7 @@ private:
             camera_to_marker(row, 3) = tvec[row];
         }
 
-        Eigen::Matrix4d fixed_to_marker = camera_transform_ * camera_to_marker.inverse();
+        Eigen::Matrix4d fixed_to_marker = camera_transform_.inverse() * camera_to_marker;
 
         geometry_msgs::msg::TransformStamped transformStamped;
         transformStamped.header.stamp = this->now();
