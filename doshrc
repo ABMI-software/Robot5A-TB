@@ -26,5 +26,16 @@ then
 		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "$xsock:/tmp/.X11-unix:ro")
 	fi
 	unset xsock
-	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "/dev:/dev")
+	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "/dev/dri:/dev/dri")
+	for dev in /dev/video*
+	do
+       	[[ -c "$dev" ]] || continue
+       	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+	done
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video0:/dev/video0")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video1:/dev/video1")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video2:/dev/video2")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video3:/dev/video3")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video4:/dev/video4")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video5:/dev/video5")
 fi
