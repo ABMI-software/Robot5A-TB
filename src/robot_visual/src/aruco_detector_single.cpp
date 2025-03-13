@@ -346,32 +346,43 @@ private:
         // Start with the origin point (0, 0, 0) in the world frame
         Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
 
-        // Transform the origin point to camera coordinates
-        Eigen::Vector4d transformed_origin = camera_transform_.inverse() * origin_3d; // Perform the multiplication
+        // Get the world-to-camera transform 
+        Eigen::Matrix4d world_to_camera = camera_transform_.inverse();
 
-        // Extract the 3D point in camera coordinates
-        Eigen::Vector3d projected_point = transformed_origin.head<3>(); // Get the 3D point
+        // Extract rotation matrix (3x3) and translation vector (3x1)
+        Eigen::Matrix3d R = world_to_camera.block<3, 3>(0, 0);
+        Eigen::Vector3d t = world_to_camera.block<3, 1>(0, 3);
 
-        // Convert camMatrix_ from cv::Mat to Eigen::Matrix3d
-        Eigen::Matrix3d camMatrix_eigen;
-        camMatrix_eigen << camMatrixNew.at<double>(0, 0), camMatrixNew.at<double>(0, 1), camMatrixNew.at<double>(0, 2),
-                        camMatrixNew.at<double>(1, 0), camMatrixNew.at<double>(1, 1), camMatrixNew.at<double>(1, 2),
-                        camMatrixNew.at<double>(2, 0), camMatrixNew.at<double>(2, 1), camMatrixNew.at<double>(2, 2);
+        // Convert rotation matrix to Rodrigues rotation vector
+        cv::Mat R_cv(3, 3, CV_64F);
+        for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+                R_cv.at<double>(i, j) = R(i, j);
+        cv::Mat rvec_cv;
+        cv::Rodrigues(R_cv, rvec_cv);
+        cv::Vec3d rvec(rvec_cv.at<double>(0), rvec_cv.at<double>(1), rvec_cv.at<double>(2));
 
-        // Project to pixel coordinates
-        Eigen::Vector3d pixel_point_homogeneous = camMatrix_eigen * projected_point; // Perform the multiplication
-        pixel_point_homogeneous /= pixel_point_homogeneous(2); // Normalize by the z-coordinate
+        // Convert translation to cv::Vec3d
+        cv::Vec3d tvec(t(0), t(1), t(2));
 
-        // Get the pixel coordinates
-        int pixel_x = static_cast<int>(pixel_point_homogeneous(0));
-        int pixel_y = static_cast<int>(pixel_point_homogeneous(1));
+        // Project the world origin (0, 0, 0) into the image
+        std::vector<cv::Point3f> objectPoints = {cv::Point3f(0, 0, 0)};
+        std::vector<cv::Point2f> imagePoints;
+        cv::projectPoints(objectPoints, rvec, tvec, camMatrixNew, distCoeffs_, imagePoints);
+        int pixel_x = static_cast<int>(imagePoints[0].x);
+        int pixel_y = static_cast<int>(imagePoints[0].y);
+
+        pixel_x -= roi.x;
+        pixel_y -= roi.y;
 
         // Draw the origin point on the frame
-        cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
+        cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1);
 
-        std::cout << "Transformed Origin: " << transformed_origin.transpose() << std::endl;
-        std::cout << "Projected Point: " << projected_point.transpose() << std::endl;
-        std::cout << "Pixel Point: " << pixel_point_homogeneous.transpose() << std::endl;
+        // Log for debugging
+        RCLCPP_INFO(this->get_logger(), "rvec: [%f, %f, %f]", rvec[0], rvec[1], rvec[2]);
+        RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);
+        RCLCPP_INFO(this->get_logger(), "Projected pixel: [%d, %d]", pixel_x, pixel_y);
+
         
         // Resize images
         int newWidth = width; 
