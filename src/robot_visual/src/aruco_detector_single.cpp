@@ -343,8 +343,6 @@ private:
             }
         }
 
-        // Start with the origin point (0, 0, 0) in the world frame
-        Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
 
         // Get the world-to-camera transform 
         Eigen::Matrix4d world_to_camera = camera_transform_.inverse();
@@ -368,12 +366,12 @@ private:
         // Project the world origin (0, 0, 0) into the image
         std::vector<cv::Point3f> objectPoints = {cv::Point3f(0, 0, 0)};
         std::vector<cv::Point2f> imagePoints;
-        cv::projectPoints(objectPoints, rvec, tvec, camMatrixNew, distCoeffs_, imagePoints);
+        cv::projectPoints(objectPoints, rvec, tvec, camMatrix_, distCoeffs_, imagePoints);
         int pixel_x = static_cast<int>(imagePoints[0].x);
         int pixel_y = static_cast<int>(imagePoints[0].y);
 
-        pixel_x -= roi.x;
-        pixel_y -= roi.y;
+        // pixel_x -= roi.x;
+        // pixel_y -= roi.y;
 
         // Draw the origin point on the frame
         cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1);
