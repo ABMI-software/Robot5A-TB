@@ -370,9 +370,6 @@ private:
         int pixel_x = static_cast<int>(imagePoints[0].x);
         int pixel_y = static_cast<int>(imagePoints[0].y);
 
-        // pixel_x -= roi.x;
-        // pixel_y -= roi.y;
-
         // Draw the origin point on the frame
         cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1);
 
