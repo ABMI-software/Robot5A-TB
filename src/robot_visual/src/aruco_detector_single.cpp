@@ -349,7 +349,7 @@ private:
         // Transform the origin point to camera coordinates
         Eigen::Vector4d transformed_origin = camera_transform_.inverse() * origin_3d; // Perform the multiplication
 
-        // Project the 3D point to 2D pixel coordinates
+        // Extract the 3D point in camera coordinates
         Eigen::Vector3d projected_point = transformed_origin.head<3>(); // Get the 3D point
 
         // Convert camMatrix_ from cv::Mat to Eigen::Matrix3d
@@ -369,6 +369,10 @@ private:
         // Draw the origin point on the frame
         cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1); // Draw a circle
 
+        std::cout << "Transformed Origin: " << transformed_origin.transpose() << std::endl;
+        std::cout << "Projected Point: " << projected_point.transpose() << std::endl;
+        std::cout << "Pixel Point: " << pixel_point_homogeneous.transpose() << std::endl;
+        
         // Resize images
         int newWidth = width; 
         int newHeight = height; 

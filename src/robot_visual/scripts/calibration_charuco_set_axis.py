@@ -124,7 +124,11 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
     print("\n=== Average Pose (World to Camera) ===")
     print(f"Rotation Vector (rvec):\n{avg_rvec}")
     print(f"Translation Vector (tvec):\n{avg_tvec}")
-    print("4x4 Transformation Matrix:")
+    print("4x4 Transformation Matrix (cam to world):")
+    for i in range(4):
+        print(f"      - {avg_transform[i].tolist()}")
+
+    print("4x4 Transformation Matrix (world to cam):")
     for i in range(4):
         print(f"      - {avg_transform_inv[i].tolist()}")
 
