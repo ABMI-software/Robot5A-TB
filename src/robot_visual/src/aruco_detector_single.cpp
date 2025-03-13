@@ -373,10 +373,10 @@ private:
         // Draw the origin point on the frame
         cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1);
 
-        // Log for debugging
-        RCLCPP_INFO(this->get_logger(), "rvec: [%f, %f, %f]", rvec[0], rvec[1], rvec[2]);
-        RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);
-        RCLCPP_INFO(this->get_logger(), "Projected pixel: [%d, %d]", pixel_x, pixel_y);
+        // // Log for debugging
+        // RCLCPP_INFO(this->get_logger(), "rvec: [%f, %f, %f]", rvec[0], rvec[1], rvec[2]);
+        // RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);
+        // RCLCPP_INFO(this->get_logger(), "Projected pixel: [%d, %d]", pixel_x, pixel_y);
 
         
         // Resize images
