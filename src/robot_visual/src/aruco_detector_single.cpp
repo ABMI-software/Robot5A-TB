@@ -382,9 +382,23 @@ private:
 
         // Visualize results
         cv::imshow("Original Frame", undistortedFrame);
+        cv::setMouseCallback("Original Frame", onMouse, this);
         // cv::imshow("Enhanced", enhanced);
         // cv::imshow("Binary", binary);
         cv::waitKey(1);
+    }
+
+    // Static mouse callback function
+    static void onMouse(int event, int x, int y, int flags, void* userdata) {
+        // Cast userdata back to the ArucoDetectorSingle instance
+        ArucoDetectorSingle* self = static_cast<ArucoDetectorSingle*>(userdata);
+        
+        if (event == cv::EVENT_MOUSEMOVE) {
+            // Display the cursor coordinates in the window title
+            std::stringstream ss;
+            ss << "Original Frame - Cursor: (" << x << ", " << y << ")";
+            cv::setWindowTitle("Original Frame", ss.str());
+        }
     }
 
     void publishTransform(const cv::Vec3d &rvec, const cv::Vec3d &tvec, int marker_id)
