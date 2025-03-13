@@ -21,8 +21,8 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get install -y pip \
-                       python3-venv
-
+                       python3-venv\
+                       python3-serial
 
 RUN apt-get update && \
     apt-get install -y   v4l-utils

@@ -373,6 +373,16 @@ private:
         // Draw the origin point on the frame
         cv::circle(undistortedFrame, cv::Point(pixel_x, pixel_y), 5, cv::Scalar(255, 0, 255), -1);
 
+        // Project the world origin (0, 0, 0) into the image
+        std::vector<cv::Point3f> objectPoints_end = {cv::Point3f(0.8, 0, 0)};
+        std::vector<cv::Point2f> imagePoints_end;
+        cv::projectPoints(objectPoints_end, rvec, tvec, camMatrix_, distCoeffs_, imagePoints_end);
+        int pixel_x_end = static_cast<int>(imagePoints_end[0].x);
+        int pixel_y_end = static_cast<int>(imagePoints_end[0].y);
+
+        // Draw a line from origin to 800mm endpoint
+        cv::line(undistortedFrame, cv::Point(pixel_x, pixel_y), cv::Point(pixel_x_end, pixel_y_end), cv::Scalar(0, 255, 0), 2); // Green color, thickness 2
+
         // // Log for debugging
         // RCLCPP_INFO(this->get_logger(), "rvec: [%f, %f, %f]", rvec[0], rvec[1], rvec[2]);
         // RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);

@@ -38,4 +38,11 @@ then
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video3:/dev/video3")
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video4:/dev/video4")
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video5:/dev/video5")
+	for dev in /dev/tty*
+	do
+       	[[ -c "$dev" ]] || continue
+       	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+	done
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyACM0:/dev/ttyACM0")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyS4:/dev/ttyS4")
 fi
