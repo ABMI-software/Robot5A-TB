@@ -347,7 +347,7 @@ private:
         Eigen::Vector4d origin_3d(0, 0, 0, 1); // Homogeneous coordinates
 
         // Transform the origin point to camera coordinates
-        Eigen::Vector4d transformed_origin = camera_transform_ * origin_3d; // Perform the multiplication
+        Eigen::Vector4d transformed_origin = camera_transform_.inverse() * origin_3d; // Perform the multiplication
 
         // Project the 3D point to 2D pixel coordinates
         Eigen::Vector3d projected_point = transformed_origin.head<3>(); // Get the 3D point
@@ -398,7 +398,7 @@ private:
             camera_to_marker(row, 3) = tvec[row];
         }
 
-        Eigen::Matrix4d fixed_to_marker = camera_transform_.inverse() * camera_to_marker;
+        Eigen::Matrix4d fixed_to_marker = camera_transform_ * camera_to_marker;
 
         geometry_msgs::msg::TransformStamped transformStamped;
         transformStamped.header.stamp = this->now();

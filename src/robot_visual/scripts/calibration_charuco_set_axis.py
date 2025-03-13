@@ -101,8 +101,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Define a new origin transformation (example: https://dugas.ch/transform_viewer/index.html) 
     new_origin_transform = np.array([
-        [1, 0, 0, 0.3],  # Move along X (last column)
-        [0, 1, 0, 0.3],  # Move along Y (last column)
+        [1, 0, 0, 0],  # Move along X (last column)
+        [0, 1, 0, 0],  # Move along Y (last column)
         [0, 0, 1, 0],  # Move along Z (last column)
         [0, 0, 0, 1]
     ], dtype=np.float32)
@@ -112,6 +112,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Compute average pose
     avg_rvec, avg_tvec, avg_transform = average_rotation_translation(transformed_rvecs, transformed_tvecs)
+
+    avg_transform_inv = np.linalg.inv(avg_transform);
 
     # Draw the detected board and axis
     cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
@@ -124,7 +126,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
     print(f"Translation Vector (tvec):\n{avg_tvec}")
     print("4x4 Transformation Matrix:")
     for i in range(4):
-        print(f"      - {avg_transform[i].tolist()}")
+        print(f"      - {avg_transform_inv[i].tolist()}")
 
 def drawAxis(img, camera_matrix, dist_coeffs, rvec, tvec, length=0.05):
     """Draws XYZ coordinate axes on the detected Charuco board."""
