@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from std_msgs.msg import Float32  # For publishing position as a float
 import serial
 import time
 import os
@@ -36,8 +37,11 @@ class SerialNode(Node):
             10
         )
 
-        # Create a publisher for serial responses
+        # Create a publisher for serial responses (excluding position)
         self.response_publisher = self.create_publisher(String, '/serial_response_topic', 10)
+
+        # Create a new publisher for current position
+        self.position_publisher = self.create_publisher(Float32, '/current_position', 10)
 
         # Start a thread to continuously read from the serial port
         self.read_thread = threading.Thread(target=self.read_from_serial, daemon=True)
@@ -64,9 +68,22 @@ class SerialNode(Node):
                 if self.ser.in_waiting > 0:
                     response = self.ser.readline().decode().strip()
                     self.get_logger().info(f"Nucleo response: {response}")
-                    # Publish the response to the new topic
-                    response_msg = String(data=response)
-                    self.response_publisher.publish(response_msg)
+
+                    # Check if the response is a position update
+                    if response.startswith("Current Position:"):
+                        # Extract the position value (e.g., "Current Position: 123.45")
+                        try:
+                            position_str = response.split(":")[1].strip()
+                            position = float(position_str)
+                            # Publish to /current_position as a Float32
+                            position_msg = Float32(data=position)
+                            self.position_publisher.publish(position_msg)
+                        except (IndexError, ValueError) as e:
+                            self.get_logger().error(f"Failed to parse position: {response}, error: {e}")
+                    else:
+                        # Publish all other responses to /serial_response_topic
+                        response_msg = String(data=response)
+                        self.response_publisher.publish(response_msg)
             except serial.SerialException as e:
                 self.get_logger().error(f"Serial communication error: {e}")
             time.sleep(0.1)  # Small delay to prevent busy waiting

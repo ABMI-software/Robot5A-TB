@@ -2,7 +2,6 @@
 #define DIR_PIN 5
 #define EN_PIN 8
 
-
 #define DISTANCE_PER_TURN 75.0
 #define STEPS_PER_TURN 3200
 #define STEPS_PER_MM (STEPS_PER_TURN / DISTANCE_PER_TURN)
@@ -10,7 +9,9 @@
 #define LIMIT_MAX 800.0
 
 float currentPosition = 0.0;  // Current position in mm
-int delaySpeed = 117;        // Time between steps (in microseconds)
+int delaySpeed = 117;         // Time between steps (in microseconds)
+unsigned long lastPrintTime = 0;  // To track the last time we printed
+const unsigned long printInterval = 100;  // Print interval in milliseconds (Match to FPS)
 
 void setup() {
     pinMode(STEP_PIN, OUTPUT);
@@ -23,6 +24,7 @@ void setup() {
 }
 
 void loop() {
+    // Check for serial commands
     if (Serial.available()) {
         String command = Serial.readStringUntil('\n');
         command.trim();
@@ -37,6 +39,14 @@ void loop() {
             Serial.println("Unknown command. Use 'P<position>' to move or 'V<speed>' to change speed.");
         }
     }
+
+    // Print current position periodically
+    unsigned long currentTime = millis();
+    if (currentTime - lastPrintTime >= printInterval) {
+        Serial.print("Current Position: ");
+        Serial.print(currentPosition);
+        lastPrintTime = currentTime;  // Update the last print time
+    }
 }
 
 // Move to a specified position
@@ -48,15 +58,19 @@ void moveToPosition(float targetPosition) {
 
     Serial.println("Starting movement...");
     digitalWrite(DIR_PIN, targetPosition > currentPosition ? HIGH : LOW);
-    int steps = abs((targetPosition - currentPosition) * (STEPS_PER_MM)); 
+    int steps = abs((targetPosition - currentPosition) * STEPS_PER_MM); 
 
     for (int i = 0; i < steps; i++) {
         digitalWrite(STEP_PIN, HIGH);
         delayMicroseconds(delaySpeed);
         digitalWrite(STEP_PIN, LOW);
         delayMicroseconds(delaySpeed);
+
+        // Update current position incrementally during movement
+        currentPosition += (targetPosition > currentPosition ? 1.0 : -1.0) / STEPS_PER_MM;
     }
 
+    // Ensure final position is exact due to possible floating-point errors
     currentPosition = targetPosition;
     Serial.println("Reached target position: " + String(currentPosition));
 }

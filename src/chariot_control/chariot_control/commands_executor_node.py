@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from std_msgs.msg import Float32  # For subscribing to current position
 from tf2_msgs.msg import TFMessage  # Import the TFMessage type
 from ament_index_python.packages import get_package_share_directory
 import csv
@@ -20,6 +21,7 @@ class CommandExecutorNode(Node):
         self.initial_position = 0.0  # Starting position
         self.end_position = 0.0  # End position based on commands
         self.speed = 200.0  # Default speed
+        self.current_position = 0.0  # To store the latest position from /current_position
 
         # Create a publisher for command topic
         self.command_publisher = self.create_publisher(String, '/command_topic', 10)
@@ -37,6 +39,14 @@ class CommandExecutorNode(Node):
             String,  
             '/serial_response_topic',  # Topic for serial responses
             self.serial_response_callback,
+            10
+        )
+
+        # Create a subscriber to listen for current position
+        self.position_subscriber = self.create_subscription(
+            Float32,
+            '/current_position',
+            self.position_callback,
             10
         )
 
@@ -70,7 +80,12 @@ class CommandExecutorNode(Node):
         """Initialize the CSV file for logging."""
         with open(self.csv_file_path, mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Command', 'Speed (mm/s)',  'Initial Position (mm)', 'End Position (mm)', 'Time (s)', 'ArUco ID', 'Translation X (m)', 'Translation Y (m)', 'Translation Z (m)', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Header
+            writer.writerow(['Command', 'Speed (mm/s)', 'Initial Position (mm)', 'End Position (mm)', 'Current Position (mm)', 'Time (s)', 'ArUco ID', 'Translation X (mm)', 'Translation Y (mm)', 'Translation Z (mm)', 'Rotation X', 'Rotation Y', 'Rotation Z', 'Rotation W'])  # Updated Header
+
+    def position_callback(self, msg):
+        """Callback function to handle incoming current position messages."""
+        self.current_position = msg.data
+        # self.get_logger().info(f"Received current position: {self.current_position} mm")
 
     def tf_callback(self, msg):
         """Callback function to handle incoming TF messages."""
@@ -133,6 +148,9 @@ class CommandExecutorNode(Node):
             self.get_logger().info(f"Finished executing command: {self.commands[self.current_command_index]}")
             self.initial_position = self.end_position  # Update initial position to the last end position
             self.current_command_index += 1
+
+            # Add a 0.5-second delay before executing the next command
+            time.sleep(0.5)
             
             # Check if there are more commands to execute
             if self.current_command_index < len(self.commands):
@@ -146,9 +164,9 @@ class CommandExecutorNode(Node):
         current_time = time.time()  # Get the current time
 
         # Extract translation and rotation components
-        translation_x = translation.x
-        translation_y = translation.y
-        translation_z = translation.z
+        translation_x = translation.x * 100  # Convert to mm
+        translation_y = translation.y * 100  # Convert to mm
+        translation_z = translation.z * 100  # Convert to mm
         rotation_x = rotation.x
         rotation_y = rotation.y
         rotation_z = rotation.z
@@ -156,7 +174,7 @@ class CommandExecutorNode(Node):
 
         with open(self.csv_file_path, mode='a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([command, self.speed, self.initial_position, self.end_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])  # Log speed
+            writer.writerow([command, self.speed, self.initial_position, self.end_position, self.current_position, current_time, aruco_id, translation_x, translation_y, translation_z, rotation_x, rotation_y, rotation_z, rotation_w])  # Include current position
 
 def main(args=None):
     rclpy.init(args=args)
