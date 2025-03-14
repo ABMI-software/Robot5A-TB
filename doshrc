@@ -38,6 +38,20 @@ then
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video3:/dev/video3")
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video4:/dev/video4")
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video5:/dev/video5")
+	
+	if [ -c /dev/video0 ]
+	then
+	  if gid="$(stat -c "%g" /dev/video0)"
+		then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--group-add "$gid")
+		fi
+		for dev in /dev/video*
+		do
+		[[ -c "$dev" ]] || continue
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+		done
+	fi
+
 	for dev in /dev/tty*
 	do
        	[[ -c "$dev" ]] || continue
@@ -45,4 +59,17 @@ then
 	done
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyACM0:/dev/ttyACM0")
 	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyS4:/dev/ttyS4")
+
+	if [ -c /dev/ttyS4 ]
+	then
+	  if gid="$(stat -c "%g" /dev/ttyS4)"
+		then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--group-add "$gid")
+		fi
+		for dev in /dev/tty*
+		do
+		[[ -c "$dev" ]] || continue
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+		done
+	fi
 fi
