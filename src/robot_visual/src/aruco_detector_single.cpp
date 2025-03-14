@@ -294,15 +294,15 @@ private:
                     cv::Vec3d previous_tvec = first_tvecs[marker_id];
                     cv::Vec3d previous_rvec = first_rvecs[marker_id];
                     
-                    // Check and update each translation component individually
-                    for (int j = 0; j < 3; j++)
-                    {
-                        if (std::abs(tvecs[i][j] - previous_tvec[j]) >= translation_threshold)
-                        {
-                            tvecs[i][j] = -tvecs[i][j];  // Invert if exceeds threshold
-                        }
+                    // // Check and update each translation component individually
+                    // for (int j = 0; j < 3; j++)
+                    // {
+                    //     if (std::abs(tvecs[i][j] - previous_tvec[j]) >= translation_threshold)
+                    //     {
+                    //         tvecs[i][j] = -tvecs[i][j];  // Invert if exceeds threshold
+                    //     }
                         
-                    }
+                    // }
                     
                     // Check and update each rotation component individually
                     for (int j = 0; j < 3; j++)
