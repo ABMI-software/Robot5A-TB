@@ -1,88 +1,118 @@
-import csv
-import math
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import numpy as np
 
-def quaternion_to_euler(q):
-    """Convert quaternion to Euler angles (roll, pitch, yaw)."""
-    x, y, z, w = q
-    # Roll (x-axis rotation)
-    sinr_cosp = 2 * (w * x + y * z)
-    cosr_cosp = 1 - 2 * (x * x + y * y)
-    roll = math.atan2(sinr_cosp, cosr_cosp)
+# Define paths
+input_csv_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log.csv'
+output_pdf_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs_processed/aruco_log.pdf'
 
-    # Pitch (y-axis rotation)
-    sinp = 2 * (w * y - z * x)
-    if abs(sinp) >= 1:
-        pitch = math.copysign(math.pi / 2, sinp)  # Use 90 degrees if out of range
-    else:
-        pitch = math.asin(sinp)
+# Load the CSV file
+df = pd.read_csv(input_csv_path)
 
-    # Yaw (z-axis rotation)
-    siny_cosp = 2 * (w * z + x * y)
-    cosy_cosp = 1 - 2 * (y * y + z * z)
-    yaw = math.atan2(siny_cosp, cosy_cosp)
+# Isolate aruco_0 data
+aruco_0_df = df[df['ArUco ID'] == 'aruco_0'].copy()
 
-    return roll, pitch, yaw
+# Ensure time starts at 0 for better readability
+aruco_0_df['Time (s)'] -= aruco_0_df['Time (s)'].min()
 
-def analyze_data(csv_file_path):
-    with open(csv_file_path, mode='r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        previous_time = None
-        previous_position = None
-        results = []
+# Calculate errors
+aruco_0_df['Error X (mm)'] = aruco_0_df['Current Position (mm)'] - aruco_0_df['Translation X (mm)']
+aruco_0_df['Error Y (mm)'] = aruco_0_df['Translation Y (mm)'] - 0  # Ideal Y = 0
+aruco_0_df['Error Z (mm)'] = aruco_0_df['Translation Z (mm)'] - 0  # Ideal Z = 0
 
-        for row in reader:
-            command = row['Command']
-            speed = float(row['Speed'])
-            initial_position = float(row['Initial Position'])
-            end_position = float(row['End Position'])
-            current_time = float(row['Time'])
-            aruco_id = row['ArUco ID']
-            translation_x = float(row['Translation X'])  # Movement along the X-axis
-            translation_y = float(row['Translation Y'])
-            translation_z = float(row['Translation Z'])
-            rotation_x = float(row['Rotation X'])
-            rotation_y = float(row['Rotation Y'])
-            rotation_z = float(row['Rotation Z'])
-            rotation_w = float(row['Rotation W'])
+# Compute statistics
+stats = {
+    'Error X': {
+        'Mean': np.abs(aruco_0_df['Error X (mm)']).mean(),  # Absolute value for mean
+        'Std Dev': aruco_0_df['Error X (mm)'].std()
+    },
+    'Error Y': {
+        'Mean': aruco_0_df['Error Y (mm)'].mean(),
+        'Std Dev': aruco_0_df['Error Y (mm)'].std()
+    },
+    'Error Z': {
+        'Mean': aruco_0_df['Error Z (mm)'].mean(),
+        'Std Dev': aruco_0_df['Error Z (mm)'].std()
+    },
+    'Rotation X': {
+        'Mean': aruco_0_df['Rotation X'].mean(),
+        'Std Dev': aruco_0_df['Rotation X'].std()
+    },
+    'Rotation Y': {
+        'Mean': aruco_0_df['Rotation Y'].mean(),
+        'Std Dev': aruco_0_df['Rotation Y'].std()
+    },
+    'Rotation Z': {
+        'Mean': aruco_0_df['Rotation Z'].mean(),
+        'Std Dev': aruco_0_df['Rotation Z'].std()
+    },
+    'Rotation W': {
+        'Mean': aruco_0_df['Rotation W'].mean(),
+        'Std Dev': aruco_0_df['Rotation W'].std()
+    }
+}
 
-            # Calculate the actual position based on translation
-            actual_position = translation_x  # Assuming movement is along the X-axis
+# Create PDF report
+with PdfPages(output_pdf_path) as pdf:
+    # Page 1: Position and Translation X Plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Current Position (mm)'].to_numpy(), label='Current Position (mm)', color='blue')
+    plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Translation X (mm)'].to_numpy(), label='Translation X (mm)', color='orange')
+    
+    # Color-code segments based on Initial and End Positions
+    commands = aruco_0_df['Command'].unique()
+    for cmd in commands:
+        cmd_df = aruco_0_df[aruco_0_df['Command'] == cmd]
+        if cmd.startswith('P'):
+            start_time = cmd_df['Time (s)'].min()
+            end_time = cmd_df['Time (s)'].max()
+            initial_pos = cmd_df['Initial Position (mm)'].iloc[0]
+            end_pos = cmd_df['End Position (mm)'].iloc[0]
+            plt.axvspan(start_time, end_time, alpha=0.2, color='green' if end_pos > initial_pos else 'red',
+                        label=f'{cmd}: {initial_pos} to {end_pos} mm' if cmd == commands[0] else "")
 
-            # Calculate precision
-            precision = abs(actual_position - end_position)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Position (mm)')
+    plt.title('Current Position vs Translation X for ArUco_0')
+    plt.legend()
+    plt.grid(True)
+    pdf.savefig()
+    plt.close()
 
-            # Calculate speed based on time difference
-            if previous_time is not None:
-                time_diff = current_time - previous_time
-                distance_traveled = actual_position - previous_position if previous_position is not None else 0
-                calculated_speed = distance_traveled / time_diff if time_diff > 0 else 0
-            else:
-                calculated_speed = speed  # Use the commanded speed for the first entry
+    # Page 2: Absolute Error X Plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(aruco_0_df['Time (s)'].to_numpy(), np.abs(aruco_0_df['Error X (mm)'].to_numpy()), label='|Error X| (mm)', color='purple')
+    plt.axhline(stats['Error X']['Mean'], color='red', linestyle='--', label=f'Mean: {stats["Error X"]["Mean"]:.2f} mm')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Absolute Error (mm)')
+    plt.title('Absolute Error between Current Position and Translation X for ArUco_0')
+    plt.legend()
+    plt.grid(True)
+    pdf.savefig()
+    plt.close()
 
-            # Convert quaternion to Euler angles
-            euler_angles = quaternion_to_euler((rotation_x, rotation_y, rotation_z, rotation_w))
+    # Page 3: Statistics Table with Units
+    plt.figure(figsize=(10, 6))
+    plt.axis('off')
+    table_data = [
+        ['Error X (mm)', f"{stats['Error X']['Mean']:.4f}", f"{stats['Error X']['Std Dev']:.4f}"],
+        ['Error Y (mm)', f"{stats['Error Y']['Mean']:.4f}", f"{stats['Error Y']['Std Dev']:.4f}"],
+        ['Error Z (mm)', f"{stats['Error Z']['Mean']:.4f}", f"{stats['Error Z']['Std Dev']:.4f}"],
+        ['Rotation X', f"{stats['Rotation X']['Mean']:.4f}", f"{stats['Rotation X']['Std Dev']:.4f}"],
+        ['Rotation Y', f"{stats['Rotation Y']['Mean']:.4f}", f"{stats['Rotation Y']['Std Dev']:.4f}"],
+        ['Rotation Z', f"{stats['Rotation Z']['Mean']:.4f}", f"{stats['Rotation Z']['Std Dev']:.4f}"],
+        ['Rotation W', f"{stats['Rotation W']['Mean']:.4f}", f"{stats['Rotation W']['Std Dev']:.4f}"]
+    ]
+    table = plt.table(cellText=table_data,
+                      colLabels=['Metric', 'Mean', 'Standard Deviation'],
+                      loc='center',
+                      cellLoc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.2)
+    plt.title('Statistical Analysis for ArUco_0', pad=20)
+    pdf.savefig()
+    plt.close()
 
-            # Store results
-            results.append({
-                'Command': command,
-                'Speed': speed,
-                'Initial Position': initial_position,
-                'End Position': end_position,
-                'Actual Position': actual_position,
-                'Precision': precision,
-                'Calculated Speed': calculated_speed,
-                'Euler Angles (Roll, Pitch, Yaw)': euler_angles,
-                'ArUco ID': aruco_id
-            })
-
-            # Update previous values
-            previous_time = current_time
-            previous_position = actual_position
-
-        # Print results
-        for result in results:
-            print(result)
-
-# Path to your CSV file
-csv_file_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log_face_650h.csv'
-analyze_data(csv_file_path)
+print(f"PDF report generated: {output_pdf_path}")
