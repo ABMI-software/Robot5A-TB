@@ -268,7 +268,7 @@ private:
                 // if (marker_id == 0){
                 // // Log the translation vector for the current marker
                 // RCLCPP_INFO(this->get_logger(), "Translation vector for marker %d: [%f, %f, %f]",
-                //     marker_id, tvecs[i][0], tvecs[i][1], tvecs[i][2]);
+                //     marker_id, tvecs[i][0], tvecs[i][1], tvecs[i][2]);}
 
 
                 // // Log the rotation vector for the current marker

@@ -14,7 +14,7 @@
 
 // Global variables
 float currentPosition = 0.0;     // Tracks the chariot’s current position in mm
-int delaySpeed = 117;            // Delay between steps (microseconds), controls speed
+int delaySpeed = 234;            // Delay between steps (microseconds), controls speed
 unsigned long lastPrintTime = 0; // Timestamp of the last position print (ms)
 const unsigned long printInterval = 100;  // Interval (ms) for position updates (10 FPS)
 

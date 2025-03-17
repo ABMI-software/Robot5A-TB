@@ -2,7 +2,7 @@ chipmunk-151@chipmunk151:~/Robot5A-TB$ ros2 topic pub -1 /command_topic std_msgs
 publisher: beginning loop
 publishing #1: std_msgs.msg.String(data='1')
 
-chipmunk-151@chipmunk151:~/Robot5A-TB$ ros2 topic pub -1 /command_topic std_msgs/msg/String "data: 'P 200'"
+chipmunk-151@chipmunk151:~/Robot5A-TB$ ros2 topic pub -1 /command_topic std_msgs/msg/String "data: 'P200'"
 publisher: beginning loop
 publishing #1: std_msgs.msg.String(data='P 200')
 
