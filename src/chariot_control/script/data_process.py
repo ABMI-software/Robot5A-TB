@@ -17,9 +17,9 @@ aruco_0_df = df[df['ArUco ID'] == 'aruco_0'].copy()
 aruco_0_df['Time (s)'] -= aruco_0_df['Time (s)'].min()
 
 # Calculate errors
-aruco_0_df['Error X (mm)'] = aruco_0_df['Current Position (mm)'] - aruco_0_df['Translation X (mm)']
-aruco_0_df['Error Y (mm)'] = aruco_0_df['Translation Y (mm)'] - 0  # Ideal Y = 0
-aruco_0_df['Error Z (mm)'] = aruco_0_df['Translation Z (mm)'] - 0  # Ideal Z = 0
+aruco_0_df['Error X (mm)'] = np.abs(aruco_0_df['Current Position (mm)'] - aruco_0_df['Translation X (mm)'])
+aruco_0_df['Error Y (mm)'] = np.abs(aruco_0_df['Translation Y (mm)'] - 0)  # Ideal Y = 0
+aruco_0_df['Error Z (mm)'] = np.abs(aruco_0_df['Translation Z (mm)'] - 70)  # Ideal Z = 70
 
 # Compute statistics with absolute values for Error X
 stats = {
@@ -104,7 +104,7 @@ with PdfPages(output_pdf_path) as pdf:
 
     # Page 2: Absolute Error X Plot
     plt.figure(figsize=(10, 6))
-    plt.plot(aruco_0_df['Time (s)'].to_numpy(), np.abs(aruco_0_df['Error X (mm)'].to_numpy()), label='|Error X| (mm)', color='purple')
+    plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Error X (mm)'].to_numpy(), label='|Error X| (mm)', color='purple')
     plt.axhline(stats['Error X']['Mean'], color='red', linestyle='--', label=f'Mean: {stats["Error X"]["Mean"]:.2f} mm')
     plt.xlabel('Time (s)')
     plt.ylabel('Absolute Error (mm)')
