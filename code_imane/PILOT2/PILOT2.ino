@@ -4,8 +4,8 @@
 #define EN_PIN 8            // Enable pin: LOW enables the motor, HIGH disables it
 
 // Define constants for motor movement calculations
-#define DISTANCE_PER_TURN 75.0   // Distance (mm) the chariot moves per full motor turn
-#define STEPS_PER_TURN 3200      // Number of steps required for one full motor turn
+#define DISTANCE_PER_TURN 75.0   // Distance (mm) the chariot moves per full turn
+#define STEPS_PER_TURN 3200      // Number of steps required for one full turn
 #define STEPS_PER_MM (STEPS_PER_TURN / DISTANCE_PER_TURN)  // Steps needed to move 1 mm
 
 // Define position limits in millimeters
@@ -16,7 +16,14 @@
 float currentPosition = 0.0;     // Tracks the chariot’s current position in mm
 int delaySpeed = 117;            // Delay between steps (microseconds), controls speed
 unsigned long lastPrintTime = 0; // Timestamp of the last position print (ms)
-const unsigned long printInterval = 100;  // Interval (ms) for periodic position updates (10 FPS)
+const unsigned long printInterval = 100;  // Interval (ms) for position updates (10 FPS)
+
+// Movement state variables
+int targetSteps = 0;             // Total steps to reach the target position
+int stepsRemaining = 0;          // Steps left to complete the move
+float stepIncrement = 0.0;       // Position change per step
+unsigned long lastStepTime = 0;  // Timestamp of the last step (µs)
+bool isMoving = false;           // Flag to indicate if the chariot is moving
 
 void setup() {
     // Configure pins as outputs for the stepper motor driver
@@ -51,7 +58,7 @@ void loop() {
         // Handle position commands (e.g., "P200" to move to 200 mm)
         if (command.startsWith("P")) {
             float position = command.substring(1).toFloat(); // Extract the number after "P"
-            moveToPosition(position); // Move the chariot to the specified position
+            startMovement(position); // Initiate movement to the specified position
         }
         // Handle speed commands (e.g., "V240" to set speed to 240 mm/s)
         else if (command.startsWith("V")) {
@@ -65,9 +72,18 @@ void loop() {
         }
     }
 
-    // Periodically print the current position when not moving
-    unsigned long currentTime = millis(); // Get the current time in milliseconds
-    if (currentTime - lastPrintTime >= printInterval) { // Check if it’s time to print
+    // Handle ongoing movement
+    if (isMoving) {
+        unsigned long currentTimeMicros = micros();
+        if (currentTimeMicros - lastStepTime >= delaySpeed) {
+            stepMotor();             // Perform one step
+            lastStepTime = currentTimeMicros; // Update the last step time
+        }
+    }
+
+    // Periodically print the current position
+    unsigned long currentTime = millis();
+    if (currentTime - lastPrintTime >= printInterval) {
         Serial.print("Current Position: "); // Label for the position message
         Serial.println(currentPosition);    // Print the current position value
         Serial.flush();                     // Force the message to send immediately
@@ -75,13 +91,20 @@ void loop() {
     }
 }
 
-// Function to move the chariot to a target position
-void moveToPosition(float targetPosition) {
+// Function to initiate movement to a target position
+void startMovement(float targetPosition) {
     // Check if the target position is within allowed limits
     if (targetPosition < LIMIT_MIN || targetPosition > LIMIT_MAX) {
         Serial.println("Error: Position out of limits."); // Send error if out of bounds
         Serial.flush();                                   // Ensure the error is sent
         return;                                           // Exit the function
+    }
+
+    // If already moving, ignore new command to avoid conflicts
+    if (isMoving) {
+        Serial.println("Error: Already moving, command ignored.");
+        Serial.flush();
+        return;
     }
 
     // Notify ROS that movement is starting
@@ -92,38 +115,37 @@ void moveToPosition(float targetPosition) {
     digitalWrite(DIR_PIN, targetPosition > currentPosition ? HIGH : LOW);
     
     // Calculate the number of steps needed to reach the target
-    int steps = abs((targetPosition - currentPosition) * STEPS_PER_MM);
+    targetSteps = abs((targetPosition - currentPosition) * STEPS_PER_MM);
+    stepsRemaining = targetSteps;
+    stepIncrement = (targetPosition > currentPosition ? 1.0 : -1.0) / STEPS_PER_MM; // Position change per step
     
-    // Variables to track position updates during movement
-    unsigned long lastUpdateTime = millis();          // Time of the last position update
-    const unsigned long updateInterval = 100;         // Update position every 100 ms
+    // Start the movement
+    isMoving = true;
+    lastStepTime = micros(); // Initialize the step timing
+}
 
-    // Step the motor the required number of times
-    for (int i = 0; i < steps; i++) {
-        // Send a pulse to move one step
+// Function to perform a single motor step
+void stepMotor() {
+    if (stepsRemaining > 0) {
+        // Perform one step
         digitalWrite(STEP_PIN, HIGH);                 // Start pulse
-        delayMicroseconds(delaySpeed);                // Wait (controls speed)
+        delayMicroseconds(delaySpeed / 2);            // Half the delay for HIGH
         digitalWrite(STEP_PIN, LOW);                  // End pulse
-        delayMicroseconds(delaySpeed);                // Wait again
-
-        // Update the current position incrementally after each step
-        currentPosition += (targetPosition > currentPosition ? 1.0 : -1.0) / STEPS_PER_MM;
-
-        // Check if it’s time to send a position update during movement
-        unsigned long currentTime = millis();
-        if (currentTime - lastUpdateTime >= updateInterval) {
-            Serial.print("Current Position: ");       // Label for the position
-            Serial.println(currentPosition);          // Print the current position
-            Serial.flush();                           // Ensure the message is sent
-            lastUpdateTime = currentTime;             // Update the last print time
+        delayMicroseconds(delaySpeed / 2);            // Half the delay for LOW
+        
+        // Update position
+        currentPosition += stepIncrement;
+        stepsRemaining--;
+        
+        // Check if movement is complete
+        if (stepsRemaining == 0) {
+            isMoving = false;
+            currentPosition = round(currentPosition * 100) / 100.0; // Round to 2 decimals
+            Serial.print("Reached target position: ");  // Confirm the move is complete
+            Serial.println(currentPosition);            // Print the final position
+            Serial.flush();                             // Ensure the message is sent
         }
     }
-
-    // Set the final position exactly to the target (corrects any floating-point drift)
-    currentPosition = targetPosition;
-    Serial.print("Reached target position: ");        // Confirm the move is complete
-    Serial.println(currentPosition);                  // Print the final position
-    Serial.flush();                                   // Ensure the message is sent
 }
 
 // Function to change the motor speed (in mm/s)
