@@ -4,7 +4,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
 # Define paths
-input_csv_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log.csv'
+input_csv_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log_V100_LONG.csv'
 output_pdf_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs_processed/aruco_log.pdf'
 
 # Load the CSV file
@@ -61,7 +61,7 @@ with PdfPages(output_pdf_path) as pdf:
     plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Translation X (mm)'].to_numpy(), label='Translation X (mm)', color='orange')
     
     # Assign unique colors to each command instance
-    command_colors = ['lime', 'cyan', 'magenta', 'yellow', 'purple', 'pink', 'teal', 'gold', 'coral', 'violet']
+    command_colors = ['lime', 'cyan', 'magenta', 'yellow', 'purple', 'pink', 'teal', 'gold']
     color_idx = 0
     start_time = None
     current_cmd = None
