@@ -5,7 +5,7 @@ import numpy as np
 
 # Define paths
 input_csv_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs/aruco_log_V100_LONG.csv'
-output_pdf_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs_processed/aruco_log.pdf'
+output_pdf_path = '/home/chipmunk-151/Robot5A-TB/src/chariot_control/logs_processed/aruco_log_V100_LONG.pdf'
 
 # Load the CSV file
 df = pd.read_csv(input_csv_path)
