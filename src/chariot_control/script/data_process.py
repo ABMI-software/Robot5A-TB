@@ -21,11 +21,11 @@ aruco_0_df['Error X (mm)'] = aruco_0_df['Current Position (mm)'] - aruco_0_df['T
 aruco_0_df['Error Y (mm)'] = aruco_0_df['Translation Y (mm)'] - 0  # Ideal Y = 0
 aruco_0_df['Error Z (mm)'] = aruco_0_df['Translation Z (mm)'] - 0  # Ideal Z = 0
 
-# Compute statistics
+# Compute statistics with absolute values for Error X
 stats = {
     'Error X': {
-        'Mean': np.abs(aruco_0_df['Error X (mm)']).mean(),  # Absolute value for mean
-        'Std Dev': aruco_0_df['Error X (mm)'].std()
+        'Mean': np.abs(aruco_0_df['Error X (mm)']).mean(),  # Mean of absolute values
+        'Std Dev': np.abs(aruco_0_df['Error X (mm)']).std()  # Std Dev of absolute values
     },
     'Error Y': {
         'Mean': aruco_0_df['Error Y (mm)'].mean(),
@@ -60,17 +60,39 @@ with PdfPages(output_pdf_path) as pdf:
     plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Current Position (mm)'].to_numpy(), label='Current Position (mm)', color='blue')
     plt.plot(aruco_0_df['Time (s)'].to_numpy(), aruco_0_df['Translation X (mm)'].to_numpy(), label='Translation X (mm)', color='orange')
     
-    # Color-code segments based on Initial and End Positions
-    commands = aruco_0_df['Command'].unique()
-    for cmd in commands:
-        cmd_df = aruco_0_df[aruco_0_df['Command'] == cmd]
+    # Assign unique colors to each command instance
+    command_colors = ['lime', 'cyan', 'magenta', 'yellow', 'purple', 'pink', 'teal', 'gold', 'coral', 'violet']
+    color_idx = 0
+    start_time = None
+    current_cmd = None
+    
+    for i in range(len(aruco_0_df)):
+        cmd = aruco_0_df['Command'].iloc[i]
         if cmd.startswith('P'):
-            start_time = cmd_df['Time (s)'].min()
-            end_time = cmd_df['Time (s)'].max()
-            initial_pos = cmd_df['Initial Position (mm)'].iloc[0]
-            end_pos = cmd_df['End Position (mm)'].iloc[0]
-            plt.axvspan(start_time, end_time, alpha=0.2, color='green' if end_pos > initial_pos else 'red',
-                        label=f'{cmd}: {initial_pos} to {end_pos} mm' if cmd == commands[0] else "")
+            if current_cmd is None or cmd != current_cmd:
+                # New command detected
+                if start_time is not None:
+                    # Plot the previous command segment
+                    end_time = aruco_0_df['Time (s)'].iloc[i-1]
+                    initial_pos = aruco_0_df['Initial Position (mm)'].iloc[i-1]
+                    end_pos = aruco_0_df['End Position (mm)'].iloc[i-1]
+                    color = command_colors[color_idx % len(command_colors)]
+                    plt.axvspan(start_time, end_time, alpha=0.2, color=color,
+                                label=f'{current_cmd}: {initial_pos} to {end_pos} mm' if color_idx == 0 else "")
+                    color_idx += 1
+                
+                # Start new command
+                start_time = aruco_0_df['Time (s)'].iloc[i]
+                current_cmd = cmd
+            
+            # Handle the last segment
+            if i == len(aruco_0_df) - 1:
+                end_time = aruco_0_df['Time (s)'].iloc[i]
+                initial_pos = aruco_0_df['Initial Position (mm)'].iloc[i]
+                end_pos = aruco_0_df['End Position (mm)'].iloc[i]
+                color = command_colors[color_idx % len(command_colors)]
+                plt.axvspan(start_time, end_time, alpha=0.2, color=color,
+                            label=f'{cmd}: {initial_pos} to {end_pos} mm' if color_idx == 0 else "")
 
     plt.xlabel('Time (s)')
     plt.ylabel('Position (mm)')
