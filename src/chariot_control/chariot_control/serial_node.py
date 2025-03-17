@@ -72,9 +72,7 @@ class SerialNode(Node):
                 if self.ser.in_waiting > 0:  # Check if there’s data in the serial buffer
                     response = self.ser.readline().decode('utf-8', errors='ignore').strip()  # Read one line, handle decode errors
                     if response:  # Only process non-empty responses
-                        self.get_logger().info(f"Nucleo response: {response}")
-
-                        # Check if the response is a position update
+                        # Handle position updates silently (no logging)
                         if response.startswith("Current Position:"):
                             try:
                                 position_str = response.split(":")[1].strip()  # Extract number after "Current Position:"
@@ -84,7 +82,8 @@ class SerialNode(Node):
                             except (IndexError, ValueError) as e:
                                 self.get_logger().error(f"Failed to parse position: {response}, error: {e}")
                         else:
-                            # Publish all other responses to /serial_response_topic
+                            # Log and publish other responses (e.g., "Starting movement...", "Reached target position...")
+                            self.get_logger().info(f"Nucleo response: {response}")
                             response_msg = String(data=response)
                             self.response_publisher.publish(response_msg)
             except serial.SerialException as e:
