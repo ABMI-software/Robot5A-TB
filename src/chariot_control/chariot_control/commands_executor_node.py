@@ -159,9 +159,9 @@ class CommandExecutorNode(Node):
         current_time = time.time()  # Get current time in seconds
 
         # Extract translation and rotation components, convert translations to mm
-        translation_x = translation.x * 100  # Convert meters to mm
-        translation_y = translation.y * 100
-        translation_z = translation.z * 100
+        translation_x = translation.x * 1000  # Convert meters to mm
+        translation_y = translation.y * 1000
+        translation_z = translation.z * 1000
         rotation_x = rotation.x  # Quaternion components (unitless)
         rotation_y = rotation.y
         rotation_z = rotation.z

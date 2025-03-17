@@ -92,11 +92,12 @@ class SerialNode(Node):
             time.sleep(0.05)  # 50 ms delay to keep up with 10 FPS (100 ms) updates
 
     def on_shutdown(self):
-        """Handle node shutdown."""
-        self.is_shutting_down = True  # Signal thread to stop
-        if self.ser.is_open:  # Close serial port if open
+        self.is_shutting_down = True
+        time.sleep(0.1)  # Brief delay to let read thread stop
+        if self.ser.is_open:
+            self.get_logger().info("Serial connection closing...")  # Log before closing
             self.ser.close()
-            self.get_logger().info("Serial connection closed.")  # Log closure (moved here to ensure it publishes)
+            # Log moved before close to ensure publisher is still valid
 
 def main(args=None):
     rclpy.init(args=args)  # Initialize ROS 2
