@@ -23,10 +23,13 @@ RUN apt-get update && \
     apt-get install -y pip \
                        python3-venv\
                        python3-serial\
-                       python-is-python3
+                       python-is-python3\
+                       python3-pandas\
+                       python3-numpy
 
 RUN apt-get update && \
     apt-get install -y   v4l-utils
+
 
 
 
