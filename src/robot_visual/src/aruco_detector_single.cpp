@@ -383,6 +383,13 @@ private:
         // Draw a line from origin to 800mm endpoint
         cv::line(undistortedFrame, cv::Point(pixel_x, pixel_y), cv::Point(pixel_x_end, pixel_y_end), cv::Scalar(0, 255, 0), 2); // Green color, thickness 2
 
+       // Extract principal point from camMatrix_
+        double cx = camMatrix_.at<double>(0, 2); // Principal point x-coordinate
+        double cy = camMatrix_.at<double>(1, 2); // Principal point y-coordinate
+
+        // Draw the principal point on the undistorted frame
+        cv::circle(undistortedFrame, cv::Point(static_cast<int>(cx), static_cast<int>(cy)), 5, cv::Scalar(0, 255, 255), -1); // Yellow filled circle
+
         // // Log for debugging
         // RCLCPP_INFO(this->get_logger(), "rvec: [%f, %f, %f]", rvec[0], rvec[1], rvec[2]);
         // RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);
