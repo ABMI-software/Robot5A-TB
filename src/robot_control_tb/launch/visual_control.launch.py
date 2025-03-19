@@ -1,10 +1,7 @@
 """
-@file visual_sim.launch.py
-@brief Launch file for setting up the robot simulation with visual servoing components.
+@file visual_control.launch.py
+@brief Launch file for setting up the robot  with visual servoing components.
 
-This launch file initializes the robot simulation in Gazebo with a custom world that includes a spotlight,
-spawns the robot entity, sets up the MoveIt configuration, and starts the necessary nodes and controllers
-for the robot operation, including visual servoing components like the object detector and visual joint state publisher nodes.
 """
 
 import os
@@ -27,11 +24,7 @@ from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
     """
-    @brief Generates the launch description for the robot simulation with visual servoing components.
-
-    This function sets up the robot description, launches Gazebo with a custom world file,
-    spawns the robot entity, configures MoveIt, and starts the necessary nodes and controllers,
-    including the GUI node, object detector node, and visual joint state publisher node.
+    @brief Generates the launch description for the robot  with visual servoing components.
     
     It now accepts a parameter 'num_cameras' to determine whether to launch the single or double ArUco detector.
     
@@ -49,7 +42,7 @@ def generate_launch_description():
     num_cameras = LaunchConfiguration('num_cameras')
 
     # Package Directories
-    pkg_name = "robot_description"  # Name of the robot description package
+    pkg_name = "robot_state"  # Name of the robot description package
     robot_moveit_config = (
         "robot_moveit_config"  # Name of the MoveIt configuration package
     )
@@ -62,7 +55,7 @@ def generate_launch_description():
 
     # Load and process URDF/XACRO file
     xacro_file = os.path.join(
-        share_dir, "urdf", "r5a_v_ros.urdf.xacro"
+        share_dir, "urdf", "robot_description.urdf.xacro"
     )  # Path to the XACRO file
     robot_description_config = xacro.process_file(xacro_file)  # Process the XACRO file
     robot_description = {
@@ -77,30 +70,6 @@ def generate_launch_description():
         parameters=[robot_description, {"use_sim_time": True}],
     )
 
-    # Gazebo launch with a custom world file that includes a spotlight
-    world_file_path = os.path.join(
-        share_dir, "worlds", "spotlight.world"
-    )  # Path to the custom world file
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    get_package_share_directory("gazebo_ros"),
-                    "launch",
-                    "gazebo.launch.py",
-                )
-            ]
-        ),
-        launch_arguments={"use_sim_time": "true", "world": world_file_path}.items(),
-    )
-
-    # Spawn Entity Node
-    spawn_entity = Node(
-        package="gazebo_ros",
-        executable="spawn_entity.py",
-        arguments=["-topic", "/robot_description", "-entity", "armr5"],
-        output="screen",
-    )
 
     # MoveIt Configuration
     moveit_config = (
@@ -197,7 +166,7 @@ def generate_launch_description():
     
     # Aruco Detector Single Node
     aruco_detector_single_node = Node(
-        package="robot_control",
+        package="robot_visual",
         executable="aruco_detector_single",
         output="screen",
         parameters=[
@@ -208,7 +177,7 @@ def generate_launch_description():
 
     # Aruco Detector Double Node
     aruco_detector_double_node = Node(
-        package="robot_control",
+        package="robot_visual",
         executable="aruco_detector_double",
         output="screen",
         parameters=[
@@ -224,14 +193,6 @@ def generate_launch_description():
         [
             num_cameras_arg,  # Added the launch argument
 
-
-            SetParameter(name="use_sim_time", value=True),  # Enable simulation time
-            RegisterEventHandler(
-                event_handler=OnProcessExit(
-                    target_action=spawn_entity,
-                    on_exit=[load_joint_state_controller],
-                )
-            ),
             RegisterEventHandler(
                 event_handler=OnProcessExit(
                     target_action=load_joint_state_controller,
@@ -257,8 +218,6 @@ def generate_launch_description():
                     ],
                 )
             ),
-            gazebo,
             robot_state_publisher_node,
-            spawn_entity,
         ]
     )
