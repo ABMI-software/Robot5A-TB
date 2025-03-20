@@ -91,6 +91,14 @@ def generate_launch_description():
         .to_moveit_configs()
     )
 
+    # Controller manager node
+    controller_manager_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        output="screen",
+        parameters=[robot_description, {"use_sim_time": True}],
+    )
+
     # Move Group Node
     move_group_node = Node(
         package="moveit_ros_move_group",
@@ -139,7 +147,7 @@ def generate_launch_description():
     )
     # Launch the GUI Node
     gui_node = Node(
-        package="robot_control",  # Package name containing the GUI node
+        package="robot_control_tb",  # Package name containing the GUI node
         executable="moveit_control_gui",  # Executable name of the GUI node
         output="screen",
         parameters=[
@@ -150,7 +158,7 @@ def generate_launch_description():
     )
     # Launch Visual Joint State Publisher Node
     visual_joint_state_publisher_node = Node(
-        package="robot_control",
+        package="robot_control_tb",
         executable="visual_joint_state_publisher",
         output="screen",
         parameters=[{"use_sim_time": True}],
@@ -158,7 +166,7 @@ def generate_launch_description():
 
     # Launch Joint State Bridge Node
     joint_state_bridge_node = Node(
-            package="robot_control",  
+            package="robot_control_tb",  
             executable="joint_state_bridge",  
             output="screen",
             parameters=[{"use_sim_time": True}],
@@ -193,6 +201,13 @@ def generate_launch_description():
         [
             num_cameras_arg,  # Added the launch argument
 
+            RegisterEventHandler(
+                event_handler=OnProcessExit(
+                    target_action=controller_manager_node,
+                    on_exit=[load_joint_state_controller],
+                )
+            ),
+            
             RegisterEventHandler(
                 event_handler=OnProcessExit(
                     target_action=load_joint_state_controller,
