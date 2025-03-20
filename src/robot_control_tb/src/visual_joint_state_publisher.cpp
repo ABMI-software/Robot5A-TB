@@ -106,9 +106,9 @@ VisualJointStatePublisher::VisualJointStatePublisher()
   
   // Declare and get parameters
   this->declare_parameter<std::string>(
-      "config_file", "src/robot_control/config/aruco_to_link.yaml");
+      "config_file", "src/robot_control_tb/config/aruco_to_link.yaml");
   this->declare_parameter<std::string>(
-      "camera_config_file", "src/robot_control/config/transform.yaml");
+      "camera_config_file", "src/robot_control_tb/config/transform.yaml");
   this->declare_parameter<std::vector<std::string>>(
       "joint_names", std::vector<std::string>{"R0_Yaw", "R1_Pitch", "R2_Pitch",
                                               "R3_Yaw", "R4_Pitch", "ServoGear"

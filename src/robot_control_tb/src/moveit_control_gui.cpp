@@ -153,26 +153,13 @@ private:
     void moveGripperToPosition(const GripperPositions& positions) {
         double servo_position = positions.servo_gear_position;
 
-        // Calculate positions for dependent joints
-        double left_gripper_position = -servo_position;
-        double left_pivot_arm_position = -servo_position;
-        double passif_gear_position = -servo_position;
-        double right_gripper_position = servo_position;
-        double right_pivot_arm_position = -servo_position;
-
-        RCLCPP_INFO(node_->get_logger(), "Moving gripper to positions: ServoGear %.2f, LeftGripper %.2f, RightGripper %.2f, LeftPivotArm %.2f, RightPivotArm %.2f, PassifGear %.2f",
-                    servo_position, left_gripper_position, right_gripper_position,
-                    left_pivot_arm_position, right_pivot_arm_position, passif_gear_position);
+        RCLCPP_INFO(node_->get_logger(), "Moving gripper to positions: ServoGear %.2f ",
+                    servo_position);
 
         // Set the target positions for all joints
-        std::vector<std::string> joint_names = {"ServoGear", "LeftGripper", "RightGripper", "LeftPivotArm", "RightPivotArm", "PassifGear"};
+        std::vector<std::string> joint_names = {"ServoGear"};
         std::vector<double> joint_positions = {
-            servo_position,
-            left_gripper_position,
-            right_gripper_position,
-            left_pivot_arm_position,
-            right_pivot_arm_position,
-            passif_gear_position
+            servo_position
         };
 
         // Set the joint value target for the gripper
