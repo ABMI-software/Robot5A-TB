@@ -339,7 +339,6 @@
       effort="5"
       velocity="1" />
   </joint>
-  </joint>
   <link
     name="R5A_GripperLeft_Link1">
     <inertial>
@@ -714,7 +713,6 @@
       <command_interface name="position" />
       <state_interface name="position" />
     </joint>
-  </ros2_control>
     <joint name="ServoGear">
       <command_interface name="position"/>
       <state_interface name="position">
@@ -722,5 +720,6 @@
       </state_interface>
       <state_interface name="velocity"/>
     </joint>
+    </ros2_control>
 
 </robot>

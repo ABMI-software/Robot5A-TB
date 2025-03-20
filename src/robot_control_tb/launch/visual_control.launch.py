@@ -44,7 +44,7 @@ def generate_launch_description():
     # Package Directories
     pkg_name = "robot_description_tb"  # Name of the robot description package
     robot_moveit_config = (
-        "robot_moveit_config"  # Name of the MoveIt configuration package
+        "robot_moveit_config_tb"  # Name of the MoveIt configuration package
     )
     share_dir = get_package_share_directory(
         pkg_name
@@ -55,7 +55,7 @@ def generate_launch_description():
 
     # Load and process URDF/XACRO file
     xacro_file = os.path.join(
-        share_dir, "urdf", "robot_description.urdf.xacro"
+        share_dir, "urdf", "r5a_v_ros.urdf.xacro"
     )  # Path to the XACRO file
     robot_description_config = xacro.process_file(xacro_file)  # Process the XACRO file
     robot_description = {
