@@ -200,13 +200,6 @@ def generate_launch_description():
     return LaunchDescription(
         [
             num_cameras_arg,  # Added the launch argument
-
-            RegisterEventHandler(
-                event_handler=OnProcessExit(
-                    target_action=controller_manager_node,
-                    on_exit=[load_joint_state_controller],
-                )
-            ),
             
             RegisterEventHandler(
                 event_handler=OnProcessExit(
@@ -234,5 +227,6 @@ def generate_launch_description():
                 )
             ),
             robot_state_publisher_node,
+            controller_manager_node,
         ]
     )
