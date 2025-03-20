@@ -689,37 +689,39 @@
   </joint>
 
   <ros2_control name="TBRobotSystem" type="system">
-    <hardware>
-      <plugin>robot_hardware_interface/SlushEngineHardware</plugin>
-    </hardware>
-
-    <joint name="R0_Yaw">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="R1_Pitch">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="R2_Pitch">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="R3_Yaw">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="R4_Pitch">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="ServoGear">
-      <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-      <state_interface name="velocity"/>
-    </joint>
-    </ros2_control>
+      <hardware>
+          <plugin>robot_hardware_interface/SlushEngineHardware</plugin>
+      </hardware>
+      <joint name="R0_Yaw">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+      <joint name="R1_Pitch">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+      <joint name="R2_Pitch">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+      <joint name="R3_Yaw">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+      <joint name="R4_Pitch">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+      <joint name="ServoGear">
+          <command_interface name="position"/>
+          <state_interface name="position"/>
+          <state_interface name="velocity"/>
+      </joint>
+  </ros2_control>
 
 </robot>

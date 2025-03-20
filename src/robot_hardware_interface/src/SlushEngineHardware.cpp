@@ -25,6 +25,7 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_init(const hardware_i
             joints_[joint_names_[i]] = std::make_shared<Slush::Motor>(i);
             position_commands_[joint_names_[i]] = 0.0;
             position_states_[joint_names_[i]] = 0.0;
+            velocity_states_[joint_names_[i]] = 0.0;  // Initialize velocity
         }
     } catch (const std::exception &e) {
         RCLCPP_ERROR(rclcpp::get_logger("SlushEngineHardware"), "Error initializing SlushEngine: %s", e.what());
@@ -57,6 +58,9 @@ void SlushEngineHardware::visual_joint_state_callback(const sensor_msgs::msg::Jo
     for (size_t i = 0; i < msg->name.size() && i < msg->position.size(); ++i) {
         if (position_states_.count(msg->name[i])) {
             position_states_[msg->name[i]] = msg->position[i];
+            if (i < msg->velocity.size()) {  // Check if velocity data is provided
+                velocity_states_[msg->name[i]] = msg->velocity[i];
+            }
         }
     }
 }
@@ -65,6 +69,7 @@ std::vector<hardware_interface::StateInterface> SlushEngineHardware::export_stat
     std::vector<hardware_interface::StateInterface> state_interfaces;
     for (const auto &name : joint_names_) {
         state_interfaces.emplace_back(name, "position", &position_states_[name]);
+        state_interfaces.emplace_back(name, "velocity", &velocity_states_[name]);  // Export velocity
     }
     return state_interfaces;
 }
