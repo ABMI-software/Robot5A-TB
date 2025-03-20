@@ -380,8 +380,8 @@ private:
         int pixel_x_end = static_cast<int>(imagePoints_end[0].x);
         int pixel_y_end = static_cast<int>(imagePoints_end[0].y);
 
-        // Draw a line from origin to 800mm endpoint
-        cv::line(undistortedFrame, cv::Point(pixel_x, pixel_y), cv::Point(pixel_x_end, pixel_y_end), cv::Scalar(0, 255, 0), 2); // Green color, thickness 2
+        // // Draw a line from origin to 800mm endpoint
+        // cv::line(undistortedFrame, cv::Point(pixel_x, pixel_y), cv::Point(pixel_x_end, pixel_y_end), cv::Scalar(0, 255, 0), 2); // Green color, thickness 2
 
        // Extract principal point from camMatrix_
         double cx = camMatrix_.at<double>(0, 2); // Principal point x-coordinate

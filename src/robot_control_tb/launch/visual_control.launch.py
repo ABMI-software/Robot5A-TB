@@ -42,7 +42,7 @@ def generate_launch_description():
     num_cameras = LaunchConfiguration('num_cameras')
 
     # Package Directories
-    pkg_name = "robot_state"  # Name of the robot description package
+    pkg_name = "robot_description_tb"  # Name of the robot description package
     robot_moveit_config = (
         "robot_moveit_config"  # Name of the MoveIt configuration package
     )

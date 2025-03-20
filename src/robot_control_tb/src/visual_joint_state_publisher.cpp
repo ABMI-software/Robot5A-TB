@@ -112,7 +112,6 @@ VisualJointStatePublisher::VisualJointStatePublisher()
   this->declare_parameter<std::vector<std::string>>(
       "joint_names", std::vector<std::string>{"R0_Yaw", "R1_Pitch", "R2_Pitch",
                                               "R3_Yaw", "R4_Pitch", "ServoGear"
-                                            , "LeftPivotArm", "PassifGear", "LeftGripper", "RightGripper", "RightPivotArm"
                                                 });
 
   std::string config_file = this->get_parameter("config_file").as_string();
