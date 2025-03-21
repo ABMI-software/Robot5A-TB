@@ -43,10 +43,10 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_configure(const rclcp
             RCLCPP_INFO(node_->get_logger(), "%s motor configured.", name.c_str());
         }
 
-        visual_joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
-            "visual_joint_states", 10,
+        joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+            "joint_states", 10,
             std::bind(&SlushEngineHardware::visual_joint_state_callback, this, std::placeholders::_1));
-        RCLCPP_INFO(node_->get_logger(), "Subscribed to visual_joint_states topic.");
+        RCLCPP_INFO(node_->get_logger(), "Subscribed to joint_states topic.");
     } catch (const std::exception &e) {
         RCLCPP_ERROR(node_->get_logger(), "Error configuring hardware: %s", e.what());
         return hardware_interface::CallbackReturn::ERROR;
