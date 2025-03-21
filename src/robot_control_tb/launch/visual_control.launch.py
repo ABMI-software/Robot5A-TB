@@ -45,13 +45,13 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description, {"use_sim_time": True}],
+        parameters=[robot_description, {"use_sim_time": False}],  # Changed to False
     )
 
     # MoveIt Configuration
     moveit_config = (
         MoveItConfigsBuilder(robot_moveit_config, package_name=robot_moveit_config)
-        .robot_description(file_path=xacro_file, mappings={"use_sim_time": "true"})
+        .robot_description(file_path=xacro_file, mappings={"use_sim_time": "false"})  # Changed to "false"
         .robot_description_semantic(os.path.join(moveit_config_pkg_path, "config", "armr5.srdf"))
         .robot_description_kinematics(os.path.join(moveit_config_pkg_path, "config", "kinematics.yaml"))
         .trajectory_execution(os.path.join(moveit_config_pkg_path, "config", "moveit_controllers.yaml"))
@@ -61,12 +61,13 @@ def generate_launch_description():
     )
 
     # Controller manager node
-    controller_config = os.path.join(share_dir, "config", "controllers.yaml")  
+    controller_config = os.path.join(share_dir, "config", "controllers.yaml")
     controller_manager_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         output="screen",
         parameters=[robot_description, controller_config],
+        # No use_sim_time parameter needed here; it defaults to system time unless overridden
     )
 
     # Move Group Node
@@ -74,7 +75,7 @@ def generate_launch_description():
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict(), {"use_sim_time": True}],
+        parameters=[moveit_config.to_dict(), {"use_sim_time": False}],  # Changed to False
     )
 
     # Load Controllers
@@ -100,7 +101,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             moveit_config.to_dict(),
-            {"use_sim_time": True},
+            {"use_sim_time": False},  # Changed to False
             {"moveit_current_state_monitor.joint_state_qos": "sensor_data"},
         ],
     )
@@ -110,7 +111,7 @@ def generate_launch_description():
         package="robot_control_tb",
         executable="visual_joint_state_publisher",
         output="screen",
-        parameters=[{"use_sim_time": True}],
+        parameters=[{"use_sim_time": False}],  # Changed to False
     )
 
     # Joint State Bridge Node
@@ -118,7 +119,7 @@ def generate_launch_description():
         package="robot_control_tb",
         executable="joint_state_bridge",
         output="screen",
-        parameters=[{"use_sim_time": True}],
+        parameters=[{"use_sim_time": False}],  # Changed to False
     )
 
     # Aruco Detector Single Node
@@ -126,7 +127,7 @@ def generate_launch_description():
         package="robot_visual",
         executable="aruco_detector_single",
         output="screen",
-        parameters=[{"use_sim_time": True}],
+        parameters=[{"use_sim_time": False}],  # Changed to False
         condition=UnlessCondition(PythonExpression(['"', num_cameras, '" == "2"']))
     )
 
@@ -135,7 +136,7 @@ def generate_launch_description():
         package="robot_visual",
         executable="aruco_detector_double",
         output="screen",
-        parameters=[{"use_sim_time": True}],
+        parameters=[{"use_sim_time": False}],  # Changed to False
         condition=IfCondition(PythonExpression(['"', num_cameras, '" == "2"']))
     )
 
@@ -144,7 +145,7 @@ def generate_launch_description():
         num_cameras_arg,
         robot_state_publisher_node,
         controller_manager_node,
-        load_joint_state_controller,  # Add this to start the chain
+        load_joint_state_controller,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=load_joint_state_controller,
