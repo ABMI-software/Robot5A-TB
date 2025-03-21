@@ -41,7 +41,7 @@ public:
     hardware_interface::return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
-    void visual_joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
+    void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
     std::shared_ptr<Slush::sBoard> board_;
     std::map<std::string, std::shared_ptr<Slush::Motor>> joints_;
@@ -51,7 +51,7 @@ private:
     std::vector<std::string> joint_names_ = {"R0_Yaw", "R1_Pitch", "R2_Pitch", "R3_Yaw", "R4_Pitch", "ServoGear"};
 
     rclcpp::Node::SharedPtr node_;
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr visual_joint_state_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
 };
 
 }  // namespace robot_hardware_interface

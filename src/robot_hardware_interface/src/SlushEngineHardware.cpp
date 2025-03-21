@@ -45,7 +45,7 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_configure(const rclcp
 
         joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
             "joint_states", 10,
-            std::bind(&SlushEngineHardware::visual_joint_state_callback, this, std::placeholders::_1));
+            std::bind(&SlushEngineHardware::joint_state_callback, this, std::placeholders::_1));
         RCLCPP_INFO(node_->get_logger(), "Subscribed to joint_states topic.");
     } catch (const std::exception &e) {
         RCLCPP_ERROR(node_->get_logger(), "Error configuring hardware: %s", e.what());
@@ -54,7 +54,7 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_configure(const rclcp
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-void SlushEngineHardware::visual_joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
+void SlushEngineHardware::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
     for (size_t i = 0; i < msg->name.size() && i < msg->position.size(); ++i) {
         if (position_states_.count(msg->name[i])) {
             position_states_[msg->name[i]] = msg->position[i];
