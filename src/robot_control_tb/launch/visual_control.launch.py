@@ -198,11 +198,11 @@ def generate_launch_description():
         num_cameras_arg,
         robot_state_publisher_node,
         aruco_start_handler,
-        visual_joint_start_handler,
-        joint_state_bridge_start_handler,
         move_group_start_handler,
         controller_manager_start_handler,
         arm_controller_start_handler,
         gripper_controller_start_handler,
+        visual_joint_start_handler,
+        joint_state_bridge_start_handler,
         gui_start_handler,
     ])
