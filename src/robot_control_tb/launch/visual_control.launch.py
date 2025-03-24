@@ -90,6 +90,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         output="screen",
         parameters=[robot_description, controller_config],
+        arguments=['--log-level', 'DEBUG'],  # Added for verbose output
     )
 
     # Load Controllers
@@ -167,7 +168,7 @@ def generate_launch_description():
     arm_controller_start_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=controller_manager_node,
-            on_start=[load_arm_controller]
+            on_start=[TimerAction(period=2.0, actions=[load_arm_controller])]  # Added 2s delay
         )
     )
 
@@ -204,5 +205,4 @@ def generate_launch_description():
         arm_controller_start_handler,
         gripper_controller_start_handler,
         gui_start_handler,
-
     ])
