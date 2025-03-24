@@ -324,8 +324,8 @@ void VisualJointStatePublisher::timer_callback() {
         joint_state_msg.name = joint_names_;
         joint_state_msg.position = joint_positions;
         // Velocity and effort are left empty as per requirements
-        joint_state_msg.velocity.resize(joint_state_msg.name.size(), std::nan("")); // or use an empty vector
-        joint_state_msg.effort.resize(joint_state_msg.name.size(), std::nan("")); // or use an empty vector
+        joint_state_msg.velocity.resize(joint_state_msg.name.size(), 0.0); // or use an empty vector
+        joint_state_msg.effort.resize(joint_state_msg.name.size(), 0.0); // or use an empty vector
 
         joint_state_pub_->publish(joint_state_msg);
 

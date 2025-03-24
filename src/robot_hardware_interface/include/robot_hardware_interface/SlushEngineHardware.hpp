@@ -47,8 +47,8 @@ private:
     std::map<std::string, std::shared_ptr<Slush::Motor>> joints_;
     std::map<std::string, double> position_commands_;
     std::map<std::string, double> position_states_;
-    std::map<std::string, double> velocity_states_;  // Added for velocity
-    std::vector<std::string> joint_names_ = {"R0_Yaw", "R1_Pitch", "R2_Pitch", "R3_Yaw", "R4_Pitch", "ServoGear"};
+    std::map<std::string, double> velocity_states_;
+    std::vector<std::string> joint_names_;  // No default initialization
 
     rclcpp::Node::SharedPtr node_;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;

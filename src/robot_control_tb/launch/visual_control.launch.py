@@ -1,6 +1,6 @@
 """
 @file visual_control.launch.py
-@brief Launch file for setting up the robot with visual servoing components.
+@brief Launch file for setting up the robot with visual servoing components, without joint_state_broadcaster.
 """
 
 import os
@@ -11,12 +11,13 @@ from launch.actions import (
     ExecuteProcess,
     RegisterEventHandler,
     DeclareLaunchArgument,
+    TimerAction,
 )
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
-from launch_ros.actions import Node, SetParameter
+from launch_ros.actions import Node
 import xacro
 from moveit_configs_utils import MoveItConfigsBuilder
 
@@ -45,45 +46,53 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description, {"use_sim_time": False}],  # Changed to False
+        parameters=[robot_description, {"use_sim_time": False}],
     )
 
-    # MoveIt Configuration
-    moveit_config = (
-        MoveItConfigsBuilder(robot_moveit_config, package_name=robot_moveit_config)
-        .robot_description(file_path=xacro_file, mappings={"use_sim_time": "false"})  # Changed to "false"
-        .robot_description_semantic(os.path.join(moveit_config_pkg_path, "config", "armr5.srdf"))
-        .robot_description_kinematics(os.path.join(moveit_config_pkg_path, "config", "kinematics.yaml"))
-        .trajectory_execution(os.path.join(moveit_config_pkg_path, "config", "moveit_controllers.yaml"))
-        .planning_scene_monitor(publish_robot_description=True, publish_robot_description_semantic=True)
-        .planning_pipelines(pipelines=["ompl"])
-        .to_moveit_configs()
+    # Aruco Detector Single Node
+    aruco_detector_single_node = Node(
+        package="robot_visual",
+        executable="aruco_detector_single",
+        output="screen",
+        parameters=[{"use_sim_time": False}],
+        condition=UnlessCondition(PythonExpression(['"', num_cameras, '" == "2"']))
     )
 
-    # Controller manager node
+    # Aruco Detector Double Node (only if num_cameras == 2)
+    aruco_detector_double_node = Node(
+        package="robot_visual",
+        executable="aruco_detector_double",
+        output="screen",
+        parameters=[{"use_sim_time": False}],
+        condition=IfCondition(PythonExpression(['"', num_cameras, '" == "2"']))
+    )
+
+    # Visual Joint State Publisher Node
+    visual_joint_state_publisher_node = Node(
+        package="robot_control_tb",
+        executable="visual_joint_state_publisher",
+        output="screen",
+        parameters=[{"use_sim_time": False}],
+    )
+
+    # Joint State Bridge Node
+    joint_state_bridge_node = Node(
+        package="robot_control_tb",
+        executable="joint_state_bridge",
+        output="screen",
+        parameters=[{"use_sim_time": False}],
+    )
+
+    # Controller Manager Node
     controller_config = os.path.join(share_dir, "config", "controllers.yaml")
     controller_manager_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         output="screen",
         parameters=[robot_description, controller_config],
-        # No use_sim_time parameter needed here; it defaults to system time unless overridden
-    )
-
-    # Move Group Node
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[moveit_config.to_dict(), {"use_sim_time": False}],  # Changed to False
     )
 
     # Load Controllers
-    load_joint_state_controller = ExecuteProcess(
-        cmd=["ros2", "control", "load_controller", "--set-state", "active", "joint_state_broadcaster"],
-        output="screen",
-    )
-
     load_arm_controller = ExecuteProcess(
         cmd=["ros2", "control", "load_controller", "--set-state", "active", "arm_controller"],
         output="screen",
@@ -94,6 +103,26 @@ def generate_launch_description():
         output="screen",
     )
 
+    # MoveIt Configuration
+    moveit_config = (
+        MoveItConfigsBuilder(robot_moveit_config, package_name=robot_moveit_config)
+        .robot_description(file_path=xacro_file, mappings={"use_sim_time": "false"})
+        .robot_description_semantic(os.path.join(moveit_config_pkg_path, "config", "armr5.srdf"))
+        .robot_description_kinematics(os.path.join(moveit_config_pkg_path, "config", "kinematics.yaml"))
+        .trajectory_execution(os.path.join(moveit_config_pkg_path, "config", "moveit_controllers.yaml"))
+        .planning_scene_monitor(publish_robot_description=True, publish_robot_description_semantic=True)
+        .planning_pipelines(pipelines=["ompl"])
+        .to_moveit_configs()
+    )
+
+    # Move Group Node
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[moveit_config.to_dict(), {"use_sim_time": False}],
+    )
+
     # GUI Node
     gui_node = Node(
         package="robot_control_tb",
@@ -101,73 +130,79 @@ def generate_launch_description():
         output="screen",
         parameters=[
             moveit_config.to_dict(),
-            {"use_sim_time": False},  # Changed to False
+            {"use_sim_time": False},
             {"moveit_current_state_monitor.joint_state_qos": "sensor_data"},
         ],
     )
 
-    # Visual Joint State Publisher Node
-    visual_joint_state_publisher_node = Node(
-        package="robot_control_tb",
-        executable="visual_joint_state_publisher",
-        output="screen",
-        parameters=[{"use_sim_time": False}],  # Changed to False
+    # Event Handlers to Enforce Order
+    aruco_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=robot_state_publisher_node,
+            on_start=[aruco_detector_single_node, aruco_detector_double_node]
+        )
     )
 
-    # Joint State Bridge Node
-    joint_state_bridge_node = Node(
-        package="robot_control_tb",
-        executable="joint_state_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": False}],  # Changed to False
+    visual_joint_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=aruco_detector_single_node,
+            on_start=[visual_joint_state_publisher_node]
+        )
     )
 
-    # Aruco Detector Single Node
-    aruco_detector_single_node = Node(
-        package="robot_visual",
-        executable="aruco_detector_single",
-        output="screen",
-        parameters=[{"use_sim_time": False}],  # Changed to False
-        condition=UnlessCondition(PythonExpression(['"', num_cameras, '" == "2"']))
+    joint_state_bridge_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=visual_joint_state_publisher_node,
+            on_start=[joint_state_bridge_node]
+        )
     )
 
-    # Aruco Detector Double Node
-    aruco_detector_double_node = Node(
-        package="robot_visual",
-        executable="aruco_detector_double",
-        output="screen",
-        parameters=[{"use_sim_time": False}],  # Changed to False
-        condition=IfCondition(PythonExpression(['"', num_cameras, '" == "2"']))
+    controller_manager_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=joint_state_bridge_node,
+            on_start=[controller_manager_node]
+        )
+    )
+
+    arm_controller_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=controller_manager_node,
+            on_start=[load_arm_controller]
+        )
+    )
+
+    gripper_controller_start_handler = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=load_arm_controller,
+            on_exit=[load_gripper_controller]
+        )
+    )
+
+    move_group_start_handler = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=load_gripper_controller,
+            on_exit=[move_group_node]
+        )
+    )
+
+    gui_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=move_group_node,
+            on_start=[gui_node]
+        )
     )
 
     # Launch Description
     return LaunchDescription([
         num_cameras_arg,
         robot_state_publisher_node,
-        controller_manager_node,
-        load_joint_state_controller,
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_joint_state_controller,
-                on_exit=[load_arm_controller],
-            )
-        ),
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_arm_controller,
-                on_exit=[load_gripper_controller],
-            )
-        ),
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_gripper_controller,
-                on_exit=[move_group_node, gui_node, visual_joint_state_publisher_node, joint_state_bridge_node],
-            )
-        ),
-        RegisterEventHandler(
-            event_handler=OnProcessStart(
-                target_action=move_group_node,
-                on_start=[aruco_detector_single_node, aruco_detector_double_node],
-            )
-        ),
+        aruco_start_handler,
+        visual_joint_start_handler,
+        joint_state_bridge_start_handler,
+        move_group_start_handler,
+        controller_manager_start_handler,
+        arm_controller_start_handler,
+        gripper_controller_start_handler,
+        gui_start_handler,
+
     ])

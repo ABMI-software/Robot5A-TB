@@ -24,13 +24,9 @@
         <chain base_link="base_link" tip_link="R5A_link5"/>
     </group>
     <group name="gripper">
-        <link name="R5A_GripperLeft_Link1"/>
-        <link name="R5A_GripperLeft_Link2"/>
-        <link name="R5A_GripperLeft_Link3"/>
-        <link name="R5A_GripperRight_Link1"/>
-        <link name="R5A_GripperRight_Link2"/>
-        <link name="R5A_GripperRight_Link3"/>
+        <link name="R5A_Link5"/>
         <joint name="ServoGear"/>
+        <link name="R5A_GripperLeft_Link1"/>
     </group>
     <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
     <group_state name="home" group="arm">

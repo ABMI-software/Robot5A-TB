@@ -8,48 +8,53 @@
                 <plugin>robot_hardware_interface/SlushEngineHardware</plugin>
             </hardware>
             <joint name="R0_Yaw">
+                <param name="id">0</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['R0_Yaw']}</param>
+                    <param name="initial_value">${initial_positions['R0_Yaw']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="R1_Pitch">
+                <param name="id">1</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['R1_Pitch']}</param>
+                    <param name="initial_value">${initial_positions['R1_Pitch']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="R2_Pitch">
+                <param name="id">2</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['R2_Pitch']}</param>
+                    <param name="initial_value">${initial_positions['R2_Pitch']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="R3_Yaw">
+                <param name="id">3</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['R3_Yaw']}</param>
+                    <param name="initial_value">${initial_positions['R3_Yaw']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="R4_Pitch">
+                <param name="id">4</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['R4_Pitch']}</param>
+                    <param name="initial_value">${initial_positions['R4_Pitch']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="ServoGear">
+                <param name="id">5</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
-                  <param name="initial_value">${initial_positions['ServoGear']}</param>
+                    <param name="initial_value">${initial_positions['ServoGear']}</param>
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-
         </ros2_control>
     </xacro:macro>
 </robot>
