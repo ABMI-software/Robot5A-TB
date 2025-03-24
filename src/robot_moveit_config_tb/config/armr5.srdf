@@ -24,7 +24,6 @@
         <chain base_link="base_link" tip_link="R5A_link5"/>
     </group>
     <group name="gripper">
-        <link name="R5A_Link5"/>
         <joint name="ServoGear"/>
         <link name="R5A_GripperLeft_Link1"/>
     </group>
@@ -55,8 +54,6 @@
     <disable_collisions link1="R5A_GripperLeft_Link1" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperLeft_Link1" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperLeft_Link1" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperLeft_Link1" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperLeft_Link1" link2="camera_link1" reason="Camera"/>
 
     <disable_collisions link1="R5A_GripperLeft_Link2" link2="R5A_GripperLeft_Link1" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperLeft_Link2" link2="R5A_GripperLeft_Link3" reason="Adjacent"/>
@@ -69,8 +66,6 @@
     <disable_collisions link1="R5A_GripperLeft_Link2" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperLeft_Link2" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperLeft_Link2" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperLeft_Link2" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperLeft_Link2" link2="camera_link1" reason="Camera"/>
 
     <disable_collisions link1="R5A_GripperLeft_Link3" link2="R5A_GripperLeft_Link1" reason="Never"/>
     <disable_collisions link1="R5A_GripperLeft_Link3" link2="R5A_GripperLeft_Link2" reason="Adjacent"/>
@@ -83,8 +78,6 @@
     <disable_collisions link1="R5A_GripperLeft_Link3" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperLeft_Link3" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperLeft_Link3" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperLeft_Link3" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperLeft_Link3" link2="camera_link1" reason="Camera"/>
 
     <disable_collisions link1="R5A_GripperRight_Link1" link2="R5A_GripperLeft_Link1" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link1" link2="R5A_GripperLeft_Link2" reason="Never"/>
@@ -97,8 +90,6 @@
     <disable_collisions link1="R5A_GripperRight_Link1" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link1" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperRight_Link1" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperRight_Link1" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperRight_Link1" link2="camera_link1" reason="Camera"/>
 
     <disable_collisions link1="R5A_GripperRight_Link2" link2="R5A_GripperLeft_Link1" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link2" link2="R5A_GripperLeft_Link2" reason="Never"/>
@@ -111,8 +102,6 @@
     <disable_collisions link1="R5A_GripperRight_Link2" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link2" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperRight_Link2" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperRight_Link2" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperRight_Link2" link2="camera_link1" reason="Camera"/>
 
     <disable_collisions link1="R5A_GripperRight_Link3" link2="R5A_GripperLeft_Link1" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link3" link2="R5A_GripperLeft_Link2" reason="Never"/>
@@ -125,8 +114,6 @@
     <disable_collisions link1="R5A_GripperRight_Link3" link2="R5A_link4" reason="Never"/>
     <disable_collisions link1="R5A_GripperRight_Link3" link2="R5A_link5" reason="Adjacent"/>
     <disable_collisions link1="R5A_GripperRight_Link3" link2="base_link" reason="Never"/>
-    <disable_collisions link1="R5A_GripperRight_Link3" link2="camera_link2" reason="Camera"/>
-    <disable_collisions link1="R5A_GripperRight_Link3" link2="camera_link1" reason="Camera"/>
 
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="R5A_link1" link2="R5A_link2" reason="Adjacent"/>
