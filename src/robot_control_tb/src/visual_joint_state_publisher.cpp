@@ -111,7 +111,7 @@ VisualJointStatePublisher::VisualJointStatePublisher()
       "camera_config_file", "src/robot_control_tb/config/transform.yaml");
   this->declare_parameter<std::vector<std::string>>(
       "joint_names", std::vector<std::string>{"R0_Yaw", "R1_Pitch", "R2_Pitch",
-                                              "R3_Yaw", "R4_Pitch", "ServoGear"
+                                              "R3_Yaw"
                                                 });
 
   std::string config_file = this->get_parameter("config_file").as_string();

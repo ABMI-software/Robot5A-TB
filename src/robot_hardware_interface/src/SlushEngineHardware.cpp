@@ -116,11 +116,11 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_deactivate(const rclc
 hardware_interface::return_type SlushEngineHardware::read(const rclcpp::Time &, const rclcpp::Duration &) {
     rclcpp::spin_some(node_);  // Process /joint_states for visual feedback
 
-    // Fallback for joints without feedback (R4_Pitch, ServoGear)
-    position_states_["R4_Pitch"] = position_commands_["R4_Pitch"];
-    position_states_["ServoGear"] = position_commands_["ServoGear"];
-    velocity_states_["R4_Pitch"] = 0.0;
-    velocity_states_["ServoGear"] = 0.0;
+    // // Fallback for joints without feedback (R4_Pitch, ServoGear)
+    // position_states_["R4_Pitch"] = position_commands_["R4_Pitch"];
+    // position_states_["ServoGear"] = position_commands_["ServoGear"];
+    // velocity_states_["R4_Pitch"] = 0.0;
+    // velocity_states_["ServoGear"] = 0.0;
 
     RCLCPP_DEBUG(node_->get_logger(), "Read joint states: R0_Yaw=%f, R1_Pitch=%f, R4_Pitch=%f, ServoGear=%f",
                  position_states_["R0_Yaw"], position_states_["R1_Pitch"],

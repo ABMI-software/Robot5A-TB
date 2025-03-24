@@ -71,6 +71,10 @@ gripper_controller:
     allow_partial_joints_goal: true # Defaults to false
     hardware_state_has_offset: true
     deduce_states_from_derivatives: true
+
+    # If true, When set to true, the controller will not use any feedback from the system 
+    # (e.g., joint positions, velocities, efforts) to compute the control commands. 
+    open_loop_control: true
     
     constraints:
       stopped_velocity_tolerance: 0.01 # Defaults to 0.01
