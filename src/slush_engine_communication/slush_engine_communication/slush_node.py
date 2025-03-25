@@ -2,12 +2,12 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 
-# Install via pip: pip install git+https://github.com/Roboteurs/slushengine.git
+
 try:
     from Slush.Board import sBoard
     from Slush.Motor import Motor
 except ImportError:
-    print("Slush library not installed. Run: pip install git+https://github.com/Roboteurs/slushengine.git")
+    print("Slush library not installed")
     exit(1)
 
 class SlushNode(Node):
