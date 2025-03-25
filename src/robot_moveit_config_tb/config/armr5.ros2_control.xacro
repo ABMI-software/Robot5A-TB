@@ -9,6 +9,7 @@
             </hardware>
             <joint name="R0_Yaw">
                 <param name="id">0</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['R0_Yaw']}</param>
@@ -17,6 +18,7 @@
             </joint>
             <joint name="R1_Pitch">
                 <param name="id">1</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['R1_Pitch']}</param>
@@ -25,6 +27,7 @@
             </joint>
             <joint name="R2_Pitch">
                 <param name="id">2</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['R2_Pitch']}</param>
@@ -33,6 +36,7 @@
             </joint>
             <joint name="R3_Yaw">
                 <param name="id">3</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['R3_Yaw']}</param>
@@ -41,6 +45,7 @@
             </joint>
             <joint name="R4_Pitch">
                 <param name="id">4</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['R4_Pitch']}</param>
@@ -49,6 +54,7 @@
             </joint>
             <joint name="ServoGear">
                 <param name="id">5</param>
+                <param name="steps_per_radian">1000</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                     <param name="initial_value">${initial_positions['ServoGear']}</param>
