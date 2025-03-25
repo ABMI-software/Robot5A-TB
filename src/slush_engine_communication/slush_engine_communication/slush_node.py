@@ -4,7 +4,7 @@ from sensor_msgs.msg import JointState
 
 # Install via pip: pip install git+https://github.com/Roboteurs/slushengine.git
 try:
-    from Slush.Board import Board
+    from Slush.Board import sBoard
     from Slush.Motor import Motor
 except ImportError:
     print("Slush library not installed. Run: pip install git+https://github.com/Roboteurs/slushengine.git")
@@ -13,7 +13,7 @@ except ImportError:
 class SlushNode(Node):
     def __init__(self):
         super().__init__('slush_node')
-        self.board = Board()
+        self.board = sBoard()
         self.motors = {
             "R0_Yaw": Motor(0),
             "R1_Pitch": Motor(1),
