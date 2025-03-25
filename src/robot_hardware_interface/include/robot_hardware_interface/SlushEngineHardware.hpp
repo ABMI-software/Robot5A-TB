@@ -1,35 +1,17 @@
 #ifndef SLUSH_ENGINE_HARDWARE_HPP_
 #define SLUSH_ENGINE_HARDWARE_HPP_
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <rclcpp/rclcpp.hpp>
 #include <hardware_interface/system_interface.hpp>
-#include <hardware_interface/types/hardware_interface_return_values.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-
-// Hypothetical Slush C++ library (replace with actual API if available)
-namespace Slush {
-class sBoard {
-public:
-    sBoard();
-};
-class Motor {
-public:
-    Motor(int id);
-    void setMicroSteps(int steps);
-    void setCurrent(int a, int b, int c, int d);
-    void goTo(double position);
-};
-}  // namespace Slush
+#include <map>
+#include <string>
 
 namespace robot_hardware_interface {
 
 class SlushEngineHardware : public hardware_interface::SystemInterface {
 public:
     SlushEngineHardware();
-    ~SlushEngineHardware() override = default;
 
     hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
     hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State &previous_state) override;
@@ -41,17 +23,13 @@ public:
     hardware_interface::return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
-    void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
-
-    std::shared_ptr<Slush::sBoard> board_;
-    std::map<std::string, std::shared_ptr<Slush::Motor>> joints_;
+    std::vector<std::string> joint_names_;
+    std::map<std::string, double> steps_per_radian_;
     std::map<std::string, double> position_commands_;
     std::map<std::string, double> position_states_;
     std::map<std::string, double> velocity_states_;
-    std::vector<std::string> joint_names_;  // No default initialization
-
     rclcpp::Node::SharedPtr node_;
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr command_publisher_;
 };
 
 }  // namespace robot_hardware_interface
