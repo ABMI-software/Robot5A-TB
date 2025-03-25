@@ -28,8 +28,10 @@ private:
     std::map<std::string, double> position_commands_;
     std::map<std::string, double> position_states_;
     std::map<std::string, double> velocity_states_;
+    std::mutex state_mutex_;
     rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr command_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
 };
 
 }  // namespace robot_hardware_interface

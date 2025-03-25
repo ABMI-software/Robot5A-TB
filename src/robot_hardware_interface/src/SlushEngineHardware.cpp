@@ -30,7 +30,17 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_init(const hardware_i
 hardware_interface::CallbackReturn SlushEngineHardware::on_configure(const rclcpp_lifecycle::State &) {
     node_ = std::make_shared<rclcpp::Node>("slush_engine_hardware_node");
     command_publisher_ = node_->create_publisher<sensor_msgs::msg::JointState>("/slush_commands", 10);
-    RCLCPP_INFO(node_->get_logger(), "Configured SlushEngine hardware interface.");
+    joint_state_sub_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+        "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+            std::lock_guard<std::mutex> lock(state_mutex_); // Protect shared state
+            for (size_t i = 0; i < msg->name.size(); ++i) {
+                if (position_states_.count(msg->name[i])) {
+                    position_states_[msg->name[i]] = msg->position[i];
+                    velocity_states_[msg->name[i]] = msg->velocity.empty() ? 0.0 : msg->velocity[i];
+                }
+            }
+        });
+    RCLCPP_INFO(node_->get_logger(), "Configured SlushEngine hardware interface with /joint_states subscription.");
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -66,7 +76,9 @@ hardware_interface::CallbackReturn SlushEngineHardware::on_deactivate(const rclc
 }
 
 hardware_interface::return_type SlushEngineHardware::read(const rclcpp::Time &, const rclcpp::Duration &) {
-    // Real hardware: feedback would come from slush_engine_communication if supported
+    // State is updated asynchronously via /joint_states subscription
+    // Optionally, add a timeout or staleness check here if needed
+    std::lock_guard<std::mutex> lock(state_mutex_);
     return hardware_interface::return_type::OK;
 }
 
@@ -80,9 +92,6 @@ hardware_interface::return_type SlushEngineHardware::write(const rclcpp::Time &,
         const auto &name = joint_names_[i];
         double command_rad = position_commands_[name];
         command_msg.position[i] = command_rad * steps_per_radian_[name]; // Send steps
-        // Mock feedback until real hardware
-        position_states_[name] = command_rad;
-        velocity_states_[name] = 0.0;
         RCLCPP_DEBUG(node_->get_logger(), "Commanded %s: %f rad (%f steps)", name.c_str(), command_rad, command_msg.position[i]);
     }
 
