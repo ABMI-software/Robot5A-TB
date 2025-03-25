@@ -1,5 +1,5 @@
 # spidev/spidev.py
-"""Minimal mock for spidev to bypass hardware errors on non-Pi systems.delete later"""
+"""Minimal mock for spidev to bypass hardware errors on non-Pi systems. Delete later."""
 
 class SpiDev:
     def __init__(self):
@@ -7,14 +7,16 @@ class SpiDev:
         self.bits_per_word = 8
         self.loop = False
         self.mode = 0
-        print("Mock SpiDev: Initialized")
+        # print("Mock SpiDev: Initialized")
 
     def open(self, bus, device):
-        print(f"Mock SpiDev: Opened bus {bus}, device {device}")
+        # print(f"Mock SpiDev: Opened bus {bus}, device {device}")
+        pass
 
     def close(self):
-        print("Mock SpiDev: Closed")
+        # print("Mock SpiDev: Closed")
+        pass
 
     def xfer2(self, data):
-        print(f"Mock SpiDev: Transferring data {data}")
+        # print(f"Mock SpiDev: Transferring data {data}")
         return [0] * len(data)  # Return dummy response (zeros)

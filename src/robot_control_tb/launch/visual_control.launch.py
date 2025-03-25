@@ -1,6 +1,6 @@
 """
 @file visual_control.launch.py
-@brief Launch file for setting up the robot with visual servoing components, without joint_state_broadcaster.
+@brief Launch file for setting up the robot with visual servoing components, including slush_node.
 """
 
 import os
@@ -49,6 +49,14 @@ def generate_launch_description():
         parameters=[robot_description, {"use_sim_time": False}],
     )
 
+    # Slush Engine Node
+    slush_node = Node(
+        package="slush_engine_communication",
+        executable="slush_node",
+        output="screen",
+        parameters=[{"use_sim_time": False}],
+    )
+
     # Aruco Detector Single Node
     aruco_detector_single_node = Node(
         package="robot_visual",
@@ -90,7 +98,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         output="screen",
         parameters=[robot_description, controller_config],
-        arguments=['--log-level', 'DEBUG'],  # Added for verbose output
+        arguments=['--log-level', 'DEBUG'],
     )
 
     # Load Controllers
@@ -137,9 +145,16 @@ def generate_launch_description():
     )
 
     # Event Handlers to Enforce Order
-    aruco_start_handler = RegisterEventHandler(
+    slush_start_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=robot_state_publisher_node,
+            on_start=[slush_node]
+        )
+    )
+
+    aruco_start_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=slush_node,  # Changed from robot_state_publisher_node
             on_start=[aruco_detector_single_node, aruco_detector_double_node]
         )
     )
@@ -168,7 +183,7 @@ def generate_launch_description():
     arm_controller_start_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=controller_manager_node,
-            on_start=[TimerAction(period=2.0, actions=[load_arm_controller])]  # Added 2s delay
+            on_start=[TimerAction(period=2.0, actions=[load_arm_controller])]
         )
     )
 
@@ -197,6 +212,7 @@ def generate_launch_description():
     return LaunchDescription([
         num_cameras_arg,
         robot_state_publisher_node,
+        slush_start_handler,  # Added
         aruco_start_handler,
         move_group_start_handler,
         controller_manager_start_handler,

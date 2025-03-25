@@ -15,11 +15,11 @@ class SlushNode(Node):
         super().__init__('slush_node')
         self.board = sBoard()
         self.motors = {
-            "R0_Yaw": Motor(0),
+            "R0_Yaw": Motor(4),
             "R1_Pitch": Motor(1),
-            "R2_Pitch": Motor(2),
-            "R3_Yaw": Motor(3),
-            "R4_Pitch": Motor(4),
+            "R2_Pitch": Motor(0),
+            "R3_Yaw": Motor(2),
+            "R4_Pitch": Motor(3),
             "ServoGear": Motor(5)
         }
         for name, motor in self.motors.items():
