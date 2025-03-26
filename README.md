@@ -32,7 +32,8 @@ This package handles camera calibration, ArUco marker detection, and visual join
 - **Configuration Files:**
   - `camera_1_calibration.yaml`, `camera_2_calibration.yaml`: Intrinsic camera parameters.
   - `camera_transform.yaml`: Camera poses relative to the world frame.
-  - `camera_1_images/`, `camera_1_images_charuco/`: Calibration image storage.
+  - `camera_1_images/`, `camera_1_images_charuco/`: Calibration image storage for intrinsic parameters.
+  - `extrinsic_images/`, `extrinsic_images_charuco/`: Calibration image storage for extrinsic parameters.
 - **Scripts:**
   - `calibration_charuco_recording.py`: Records CharUco board images for calibration.
     ```bash
@@ -42,18 +43,26 @@ This package handles camera calibration, ArUco marker detection, and visual join
     ```bash
     python3 scripts/calibration_charuco_script.py
     ```
-- **Launch File:**
-  - `visual_process.launch.py`: Starts visual processing nodes.
+  - `calibration_charuco_set_axis_recording.py`: Records CharUco board images for extrinsic calibration.
+    ```bash
+    python3 scripts/calibration_charuco_set_axis_recording.py
+    ```
+  - `calibration_charuco_set_axis.py`: Generates extrinsic matrix world to cam from images.
+    ```bash
+    python3 scripts/calibration_charuco_set_axis.py
+    ```
 - **Nodes:**
   - `aruco_detector_single.cpp`: Detects single ArUco markers from one camera.
   - `aruco_detector_double.cpp`: Processes dual-camera ArUco detection.
-  - `visual_joint_state_publisher.cpp`: Estimates joint states from marker poses.
   - `camera_test_node.cpp`: Tests camera functionality.
 
 #### **Usage:**
-```bash
-ros2 launch robot_visual visual_process.launch.py
-```
+First, you take images with calibration_charuco_recording (10 of the board in all border os the image and 10 of the board from differents positions or heights). 
+Then, you start calibration_charuco_script, it's automatic.
+Then, you take 1 images or identical images with calibration_charuco_set_axis_recording, you need to have set the placement of your origin in the code (described from the origin of your board). 
+Finally, you start calibration_charuco_set_axis, it's automatic. Copy the World to cam matrix in camera_transform.yaml.
+
+The calibration is finished, it's better to redo somme pictures if you move the camera.
 
 ---
 
@@ -63,16 +72,12 @@ This package provides control logic and MoveIt integration for the robot.
 #### **Contents:**
 - **Nodes:**
   - `visual_joint_state_publisher.cpp`: Publishes joint states from visual data.
-  - `moveit_control_simple.cpp`: Basic MoveIt control interface.
+  - `joint_state_bridge.cpp`: gets visual data and combine it with controller data to make a working /join_states.
+  - `moveit_control_gui.cpp`: Basic MoveIt control interface.  
 - **Config:**
   - `aruco_to_link.yaml`: Maps ArUco markers to robot links.
 - **Launch:**
   - `visual_control.launch.py`: Launches control nodes.
-
-#### **Usage:**
-```bash
-ros2 launch robot_control_tb visual_control.launch.py
-```
 
 ---
 
@@ -153,35 +158,23 @@ source install/setup.bash
 
 ## **Usage Examples**
 
-### **Launch Simulation:**
+### **Start the Full Visual Control Stack:**
 ```bash
-ros2 launch robot_description_tb gazebo.launch.py
+ros2 launch robot_control_tb visual_control.launch.py
 ```
 
-### **Record Calibration Images:**
-```bash
-python3 src/robot_visual/scripts/calibration_charuco_recording.py
-```
+This command will start all necessary nodes, including:
+- **Robot State Publisher**
+- **Slush Engine Node**
+- **Aruco Marker Detection** (single or dual camera support)
+- **Visual Joint State Publisher**
+- **Joint State Bridge**
+- **Controller Manager**
+- **MoveIt Motion Planning**
+- **GUI for MoveIt Control**
 
-### **Calibrate Cameras:**
-```bash
-python3 src/robot_visual/scripts/calibration_charuco_script.py
-```
+By running this launch file, all required components for visual servoing and hardware control will be initialized automatically.
 
-### **Run Visual Processing:**
-```bash
-ros2 launch robot_visual visual_process.launch.py
-```
-
-### **Control with MoveIt:**
-```bash
-ros2 launch robot_moveit_config_tb demo.launch.py
-```
-
-### **Drive Real Hardware:**
-```bash
-ros2 run slush_engine_communication slush_node
-```
 
 ---
 
