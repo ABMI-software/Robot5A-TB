@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-
+from std_msgs.msg import String  # Add this for debug topic
 
 try:
     from Slush.Board import sBoard
@@ -29,12 +29,15 @@ class SlushNode(Node):
 
         self.sub = self.create_subscription(
             JointState, '/slush_commands', self.command_callback, 10)
+        self.debug_pub = self.create_publisher(String, '/slush_debug', 10)
 
     def command_callback(self, msg):
         for name, steps in zip(msg.name, msg.position):
             if name in self.motors:
                 self.motors[name].goTo(int(steps))  # Steps as integer
-                self.get_logger().debug(f"Moved {name} to {steps} steps")
+                debug_msg = String()
+                debug_msg.data = f"Moved {name} to {steps} steps"
+                self.debug_pub.publish(debug_msg)
 
 def main(args=None):
     rclpy.init(args=args)
