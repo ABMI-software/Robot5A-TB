@@ -299,9 +299,9 @@ void VisualJointStatePublisher::timer_callback() {
         double R3_Yaw_angle = get_rotation_angle_about_axis(link3_to_link4.getRotation(), tf2::Vector3(0, -1, 0));
 
         // Correct R0_Yaw angle by adding Pi
-        R0_Yaw_angle += M_PI;
-        if (R0_Yaw_angle > M_PI) {
-            R0_Yaw_angle -= 2 * M_PI; // Normalize the angle to the range [-π, π]
+        R0_Yaw_angle += (M_PI/2);
+        if (R0_Yaw_angle > (M_PI/2)) {
+            R0_Yaw_angle -= 2 * (M_PI/2); // Normalize the angle to the range [-π, π]
         }
 
         // Assign joint angles
