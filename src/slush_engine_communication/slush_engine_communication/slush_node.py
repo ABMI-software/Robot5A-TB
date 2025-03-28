@@ -23,8 +23,12 @@ class SlushNode(Node):
             "ServoGear": Motor(5)
         }
         for name, motor in self.motors.items():
-            motor.setMicroSteps(16)  # Adjust as needed
-            motor.setCurrent(50, 50, 50, 50)  # Adjust as needed
+            motor.resetDev()                  # Reset the motor
+            motor.setMicroSteps(16)           # Set microstepping to 1/16 for smoother motion
+            motor.setMaxSpeed(500)            # Set a low max speed for slow motion
+            motor.setAccel(30)                # Set acceleration
+            motor.setDecel(30)                # Set deceleration
+            motor.setCurrent(50, 50, 50, 50)  # Set motor currents (adjust as needed)
             self.get_logger().info(f"Configured motor {name}")
 
         self.sub = self.create_subscription(
@@ -34,7 +38,7 @@ class SlushNode(Node):
     def command_callback(self, msg):
         for name, steps in zip(msg.name, msg.position):
             if name in self.motors:
-                self.motors[name].goTo(int(steps))  # Steps as integer
+                self.motors[name].move(int(steps))  # Steps as integer
                 debug_msg = String()
                 debug_msg.data = f"Moved {name} to {steps} steps"
                 self.debug_pub.publish(debug_msg)
