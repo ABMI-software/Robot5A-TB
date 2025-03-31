@@ -284,7 +284,7 @@ void VisualJointStatePublisher::timer_callback() {
     // Proceed only if all required link poses are available
     if (all_required_links_available && link_transforms.size() == required_links .size()) {
         tf2::Transform world_to_base_link;
-        world_to_base_link.setIdentity(); // Assuming base_link is fixed to world
+        world_to_base_link.setIdentity(); // Assuming base_link is fixed to world up = Y, right = Z and backwards = X
 
         // Compute relative transforms between consecutive links
         tf2::Transform base_to_link1 = world_to_base_link.inverse() * link_transforms[0];
