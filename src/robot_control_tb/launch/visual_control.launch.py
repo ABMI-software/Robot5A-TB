@@ -129,7 +129,10 @@ def generate_launch_description():
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict(), {"use_sim_time": False}],
+        parameters=[moveit_config.to_dict(), 
+                    {"use_sim_time": False},
+                    {"trajectory_execution.allowed_start_tolerance": 0.1},
+                    ],
     )
 
     # GUI Node
