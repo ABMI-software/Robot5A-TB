@@ -293,16 +293,16 @@ void VisualJointStatePublisher::timer_callback() {
         tf2::Transform link3_to_link4 = link_transforms[2].inverse() * link_transforms[3];
 
         // Compute joint angles constrained to specific axes
-        double R0_Yaw_angle = get_rotation_angle_about_axis(base_to_link1.getRotation(), tf2::Vector3(0, 1, 0));
-        double R1_Pitch_angle = get_rotation_angle_about_axis(link1_to_link2.getRotation(), tf2::Vector3(1, 0, 0));
-        double R2_Pitch_angle = get_rotation_angle_about_axis(link2_to_link3.getRotation(), tf2::Vector3(1, 0, 0));
-        double R3_Yaw_angle = get_rotation_angle_about_axis(link3_to_link4.getRotation(), tf2::Vector3(0, -1, 0));
+        double R0_Yaw_angle = get_rotation_angle_about_axis(base_to_link1.getRotation(), tf2::Vector3(0, 0, 1));
+        double R1_Pitch_angle = get_rotation_angle_about_axis(link1_to_link2.getRotation(), tf2::Vector3(0, 1, 0));
+        double R2_Pitch_angle = get_rotation_angle_about_axis(link2_to_link3.getRotation(), tf2::Vector3(0, 1, 0));
+        double R3_Yaw_angle = get_rotation_angle_about_axis(link3_to_link4.getRotation(), tf2::Vector3(1, 0, 0));
 
-        // Correct R0_Yaw angle by adding Pi
-        R0_Yaw_angle += (M_PI/2);
-        if (R0_Yaw_angle > (M_PI/2)) {
-            R0_Yaw_angle -= 2 * (M_PI/2); // Normalize the angle to the range [-π, π]
-        }
+        // // Correct R0_Yaw angle by adding Pi
+        // R0_Yaw_angle += (M_PI/2);
+        // if (R0_Yaw_angle > (M_PI/2)) {
+        //     R0_Yaw_angle -= 2 * (M_PI/2); // Normalize the angle to the range [-π, π]
+        // }
 
         // Assign joint angles
         std::vector<double> joint_positions(joint_names_.size(), 0.0); // Initialize with zeros

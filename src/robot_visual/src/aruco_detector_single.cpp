@@ -278,43 +278,45 @@ private:
 
                 // Check if this is the first time the marker is detected
                 
-                if (first_detection.count(marker_id) == 0) // Correct way to check if a key exists
-                {
+                if (first_detection.count(marker_id) == 0) {
                     first_detection[marker_id] = true;
                     first_tvecs[marker_id] = tvecs[i];
                     first_rvecs[marker_id] = rvecs[i];
-                }
-                else
-                {
-                    // Apply filtering only for subsequent detections
-                    // Define thresholds for translation and rotation
-                    const double translation_threshold = 1.0; // threshold for translation
-                    const double rotation_threshold = 1.0; // threshold for rotation (in radians)
+                } else {
+                    // Filtering for subsequent detections
+                    const double rotation_threshold = 1.0;    // Large jump threshold (radians)
+                    const double zero_crossing_threshold = 0.2; // Small threshold for zero-crossing (radians)
 
                     cv::Vec3d previous_tvec = first_tvecs[marker_id];
                     cv::Vec3d previous_rvec = first_rvecs[marker_id];
-                    
-                    // // Check and update each translation component individually
-                    // for (int j = 0; j < 3; j++)
-                    // {
-                    //     if (std::abs(tvecs[i][j] - previous_tvec[j]) >= translation_threshold)
-                    //     {
-                    //         tvecs[i][j] = -tvecs[i][j];  // Invert if exceeds threshold
-                    //     }
-                        
-                    // }
-                    
-                    // Check and update each rotation component individually
-                    for (int j = 0; j < 3; j++)
-                    {
-                        if (std::abs(rvecs[i][j] - previous_rvec[j]) >= rotation_threshold)
-                        {
-                            rvecs[i][j] = -rvecs[i][j];  // Invert if exceeds threshold
+
+                    for (int j = 0; j < 3; j++) {
+                        double current = rvecs[i][j];
+                        double previous = previous_rvec[j];
+                        double diff = std::abs(current - previous);
+
+                        // Detect sign change
+                        bool sign_changed = (current * previous < 0); // Negative product means opposite signs
+
+                        if (sign_changed) {
+                            // Allow small zero-crossings without inversion
+                            if (diff < zero_crossing_threshold) {
+                                // Do nothing: small oscillation across zero is fine
+                            } else if (diff > rotation_threshold) {
+                                // Large jump with sign change (e.g., π ambiguity): invert
+                                rvecs[i][j] = -current;
+                                // RCLCPP_DEBUG(this->get_logger(), "Marker %d, axis %d: Inverted rvec from %f to %f (large jump)", 
+                                //             marker_id, j, current, rvecs[i][j]);
+                            }
+                        } else if (diff > rotation_threshold) {
+                            // Large jump without sign change: possible discontinuity, invert
+                            rvecs[i][j] = -current;
+                            // RCLCPP_DEBUG(this->get_logger(), "Marker %d, axis %d: Inverted rvec from %f to %f (no sign change)", 
+                            //             marker_id, j, current, rvecs[i][j]);
                         }
-                        
                     }
-                    
-                    // Update the stored values
+
+                    // Update stored values
                     first_tvecs[marker_id] = tvecs[i];
                     first_rvecs[marker_id] = rvecs[i];
                 }
