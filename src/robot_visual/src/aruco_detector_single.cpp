@@ -284,8 +284,8 @@ private:
                     first_rvecs[marker_id] = rvecs[i];
                 } else {
                     // Filtering for subsequent detections
-                    const double rotation_threshold = 1.0;    // Large jump threshold (radians)
-                    const double zero_crossing_threshold = 0.2; // Small threshold for zero-crossing (radians)
+                    const double rotation_threshold = 0.02;    // Large jump threshold (radians)
+                    const double zero_crossing_threshold = 0.02; // Small threshold for zero-crossing (radians)
 
                     cv::Vec3d previous_tvec = first_tvecs[marker_id];
                     cv::Vec3d previous_rvec = first_rvecs[marker_id];
@@ -308,12 +308,7 @@ private:
                                 // RCLCPP_DEBUG(this->get_logger(), "Marker %d, axis %d: Inverted rvec from %f to %f (large jump)", 
                                 //             marker_id, j, current, rvecs[i][j]);
                             }
-                        } else if (diff > rotation_threshold) {
-                            // Large jump without sign change: possible discontinuity, invert
-                            rvecs[i][j] = -current;
-                            // RCLCPP_DEBUG(this->get_logger(), "Marker %d, axis %d: Inverted rvec from %f to %f (no sign change)", 
-                            //             marker_id, j, current, rvecs[i][j]);
-                        }
+                        } 
                     }
 
                     // Update stored values
