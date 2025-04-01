@@ -66,7 +66,7 @@ def generate_launch_description():
         condition=UnlessCondition(PythonExpression(['"', num_cameras, '" == "2"']))
     )
 
-    # Aruco Detector Double Node (only if num_cameras == 2)
+    # Aruco Detector Double Node
     aruco_detector_double_node = Node(
         package="robot_visual",
         executable="aruco_detector_double",
@@ -155,18 +155,29 @@ def generate_launch_description():
         )
     )
 
+    # Start either single or double ArUco detector after slush_node
     aruco_start_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
-            target_action=slush_node,  # Changed from robot_state_publisher_node
+            target_action=slush_node,
             on_start=[aruco_detector_single_node, aruco_detector_double_node]
         )
     )
 
-    visual_joint_start_handler = RegisterEventHandler(
+    # Start visual_joint_state_publisher after the appropriate ArUco node
+    visual_joint_start_handler_single = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=aruco_detector_single_node,
             on_start=[visual_joint_state_publisher_node]
-        )
+        ),
+        condition=UnlessCondition(PythonExpression(['"', num_cameras, '" == "2"']))
+    )
+
+    visual_joint_start_handler_double = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=aruco_detector_double_node,
+            on_start=[visual_joint_state_publisher_node]
+        ),
+        condition=IfCondition(PythonExpression(['"', num_cameras, '" == "2"']))
     )
 
     joint_state_bridge_start_handler = RegisterEventHandler(
@@ -215,13 +226,14 @@ def generate_launch_description():
     return LaunchDescription([
         num_cameras_arg,
         robot_state_publisher_node,
-        slush_start_handler,  # Added
+        slush_start_handler,
         aruco_start_handler,
-        move_group_start_handler,
+        visual_joint_start_handler_single,
+        visual_joint_start_handler_double,
+        joint_state_bridge_start_handler,
         controller_manager_start_handler,
         arm_controller_start_handler,
         gripper_controller_start_handler,
-        visual_joint_start_handler,
-        joint_state_bridge_start_handler,
+        move_group_start_handler,
         gui_start_handler,
     ])

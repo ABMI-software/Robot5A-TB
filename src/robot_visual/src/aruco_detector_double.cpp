@@ -351,7 +351,7 @@ private:
         if (marker_id == 0)
             tf_detected_publisher_->publish(transformStamped);
 
-        RCLCPP_INFO(this->get_logger(), "Marker %d fused from %s", marker_id, source.c_str());
+        // RCLCPP_INFO(this->get_logger(), "Marker %d fused from %s", marker_id, source.c_str());
     }
 
     static void onMouse(int event, int x, int y, int flags, void* userdata)
