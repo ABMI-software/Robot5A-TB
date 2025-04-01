@@ -18,7 +18,7 @@ add_executable(aruco_detector_single src/aruco_detector_single.cpp)
 ament_target_dependencies(aruco_detector_single rclcpp OpenCV tf2_ros Eigen3 yaml-cpp)
 
 add_executable(aruco_detector_double src/aruco_detector_double.cpp)
-ament_target_dependencies(aruco_detector_double rclcpp OpenCV)
+ament_target_dependencies(aruco_detector_double rclcpp OpenCV tf2_ros Eigen3 yaml-cpp)
 
 add_executable(visual_joint_state_publisher src/visual_joint_state_publisher.cpp)
 ament_target_dependencies(visual_joint_state_publisher rclcpp OpenCV)
@@ -38,6 +38,13 @@ target_link_libraries(aruco_detector_single
 )
 
 target_link_libraries(aruco_detector_single ament_index_cpp::ament_index_cpp)
+
+target_link_libraries(aruco_detector_double
+  yaml-cpp
+  Eigen3::Eigen
+)
+
+target_link_libraries(aruco_detector_double ament_index_cpp::ament_index_cpp)
 
 # Install targets
 install(TARGETS
