@@ -9,57 +9,45 @@
 #include <unordered_map>
 #include <mutex>
 
-class ArucoDetectorDual : public rclcpp::Node
+class ArucoDetectorDouble : public rclcpp::Node
 {
 public:
-    ArucoDetectorDual() : Node("aruco_detector_dual"), tf_broadcaster_(this)
+    ArucoDetectorDouble() : Node("aruco_detector_double"), tf_broadcaster_(this),
+                            mouse_data_1_{this, "Camera 1"}, mouse_data_2_{this, "Camera 2"}
     {
-        // Get the package share directory
         std::string package_share_directory = ament_index_cpp::get_package_share_directory("robot_visual");
-
-        // Load calibration and transform files for both cameras
         std::string calib_file_1 = package_share_directory + "/config/camera_1_calibration.yaml";
         std::string calib_file_2 = package_share_directory + "/config/camera_2_calibration.yaml";
         std::string transform_file = package_share_directory + "/config/camera_transform.yaml";
 
-        // Read camera calibrations
         readCameraCalibration(calib_file_1, camMatrix_1_, distCoeffs_1_);
         readCameraCalibration(calib_file_2, camMatrix_2_, distCoeffs_2_);
-
-        // Read transforms for both cameras
         readTransforms(transform_file, 1, camera_transform_1_);
         readTransforms(transform_file, 2, camera_transform_2_);
 
-        // Set marker parameters
         marker_length_ = 0.03;
 
-        // Open cameras
-        cap_1_.open(4, cv::CAP_V4L2);  // Camera 1
-        cap_2_.open(6, cv::CAP_V4L2);  // Camera 2 (adjust index as needed)
+        cap_1_.open(4, cv::CAP_V4L2);
+        cap_2_.open(6, cv::CAP_V4L2);
         if (!cap_1_.isOpened() || !cap_2_.isOpened())
         {
-            RCLCPP_ERROR(this->get_logger(), "Failed to open one or both cameras");
-            rclcpp::shutdown();
+            RCLCPP_ERROR(this->get_logger(), "Failed to open one or both cameras (1: %d, 2: %d)",
+                         cap_1_.isOpened(), cap_2_.isOpened());
+        }
+        else
+        {
+            configureCamera(cap_1_);
+            configureCamera(cap_2_);
         }
 
-        // Apply camera settings (identical for both)
-        configureCamera(cap_1_);
-        configureCamera(cap_2_);
-
-        // Configure ArUco detector parameters
         configureDetectorParameters();
-
-        // Initialize the publisher for /tf_detected
         tf_detected_publisher_ = this->create_publisher<geometry_msgs::msg::TransformStamped>("/tf_detected", 10);
-
-        // Timer for frame processing
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(33), // Approx. 30fps
-            std::bind(&ArucoDetectorDual::processFrames, this));
+        timer_ = this->create_wall_timer(std::chrono::milliseconds(33), std::bind(&ArucoDetectorDouble::processFrames, this));
     }
 
-    ~ArucoDetectorDual()
+    ~ArucoDetectorDouble()
     {
+        RCLCPP_INFO(this->get_logger(), "Shutting down ArucoDetectorDouble, closing windows");
         cap_1_.release();
         cap_2_.release();
         cv::destroyAllWindows();
@@ -77,11 +65,17 @@ private:
     cv::Ptr<cv::aruco::Dictionary> dictionary_;
     std::mutex detection_mutex_;
 
-    // Store first detected values per camera
     std::unordered_map<int, bool> first_detection_1_, first_detection_2_;
     std::unordered_map<int, cv::Vec3d> first_tvecs_1_, first_tvecs_2_;
     std::unordered_map<int, cv::Vec3d> first_rvecs_1_, first_rvecs_2_;
     std::unordered_set<int> previously_detected_1_, previously_detected_2_;
+
+    struct MouseCallbackData {
+        ArucoDetectorDouble* self;
+        std::string window_name;
+    };
+    MouseCallbackData mouse_data_1_;
+    MouseCallbackData mouse_data_2_;
 
     void configureCamera(cv::VideoCapture& cap)
     {
@@ -160,11 +154,12 @@ private:
 
     void processFrames()
     {
-        // Process frames from both cameras
-        auto markers_1 = processSingleFrame(cap_1_, camMatrix_1_, distCoeffs_1_, camera_transform_1_, "Camera 1", first_detection_1_, first_tvecs_1_, first_rvecs_1_, previously_detected_1_);
-        auto markers_2 = processSingleFrame(cap_2_, camMatrix_2_, distCoeffs_2_, camera_transform_2_, "Camera 2", first_detection_2_, first_tvecs_2_, first_rvecs_2_, previously_detected_2_);
+        if (!rclcpp::ok()) return;
 
-        // Fuse the marker data
+        auto markers_1 = processSingleFrame(cap_1_, camMatrix_1_, distCoeffs_1_, camera_transform_1_, "Camera 1",
+                                            first_detection_1_, first_tvecs_1_, first_rvecs_1_, previously_detected_1_);
+        auto markers_2 = processSingleFrame(cap_2_, camMatrix_2_, distCoeffs_2_, camera_transform_2_, "Camera 2",
+                                            first_detection_2_, first_tvecs_2_, first_rvecs_2_, previously_detected_2_);
         fuseAndPublishMarkers(markers_1, markers_2);
     }
 
@@ -181,98 +176,105 @@ private:
         if (frame.empty())
         {
             RCLCPP_WARN(this->get_logger(), "%s: Empty frame received", camera_name.c_str());
-            return detected_markers;
+            undistortedFrame = cv::Mat::zeros(720, 1280, CV_8UC3);
+            cv::putText(undistortedFrame, "No frame from " + camera_name, cv::Point(50, 360),
+                        cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
         }
-
-        int height = frame.rows;
-        int width = frame.cols;
-        cv::Mat camMatrixNew = cv::getOptimalNewCameraMatrix(camMatrix, distCoeffs, cv::Size(width, height), 1, cv::Size(width, height));
-        cv::undistort(frame, undistortedFrame, camMatrixNew, distCoeffs);
-
-        cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
-        cv::bilateralFilter(gray, filtered, 3, 75, 20);
-        cv::equalizeHist(filtered, enhanced);
-
-        std::vector<int> markerIds;
-        std::vector<std::vector<cv::Point2f>> markerCorners;
-        cv::aruco::detectMarkers(gray, dictionary_, markerCorners, markerIds, detectorParams_);
-
-        if (!markerCorners.empty())
+        else
         {
-            cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
-            for (auto& corners : markerCorners)
-                cv::cornerSubPix(gray, corners, cv::Size(5, 5), cv::Size(-1, -1), criteria);
-        }
+            int height = frame.rows;
+            int width = frame.cols;
+            cv::Mat camMatrixNew = cv::getOptimalNewCameraMatrix(camMatrix, distCoeffs, cv::Size(width, height), 1, cv::Size(width, height));
+            cv::undistort(frame, undistortedFrame, camMatrixNew, distCoeffs);
 
-        std::unordered_set<int> currently_detected(markerIds.begin(), markerIds.end());
-        for (int prev_marker : previously_detected)
-        {
-            if (currently_detected.find(prev_marker) == currently_detected.end())
+            cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
+            cv::bilateralFilter(gray, filtered, 3, 75, 20);
+            cv::equalizeHist(filtered, enhanced);
+
+            std::vector<int> markerIds;
+            std::vector<std::vector<cv::Point2f>> markerCorners;
+            cv::aruco::detectMarkers(gray, dictionary_, markerCorners, markerIds, detectorParams_);
+
+            if (!markerCorners.empty())
             {
-                RCLCPP_WARN(this->get_logger(), "%s: Marker %d lost, reinitializing", camera_name.c_str(), prev_marker);
-                first_detection.erase(prev_marker);
-                first_tvecs.erase(prev_marker);
-                first_rvecs.erase(prev_marker);
+                cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
+                for (auto& corners : markerCorners)
+                    cv::cornerSubPix(gray, corners, cv::Size(5, 5), cv::Size(-1, -1), criteria);
             }
-        }
-        previously_detected = currently_detected;
 
-        if (!markerIds.empty())
-        {
-            std::vector<cv::Vec3d> rvecs(markerIds.size()), tvecs(markerIds.size());
-            std::vector<cv::Point3f> markerPoints = {
-                cv::Point3f(-marker_length_ / 2, marker_length_ / 2, 0),
-                cv::Point3f(marker_length_ / 2, marker_length_ / 2, 0),
-                cv::Point3f(marker_length_ / 2, -marker_length_ / 2, 0),
-                cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)
-            };
-
-            for (size_t i = 0; i < markerIds.size(); ++i)
+            std::unordered_set<int> currently_detected(markerIds.begin(), markerIds.end());
+            for (int prev_marker : previously_detected)
             {
-                int marker_id = markerIds[i];
-                if (markerCorners[i].size() != 4 || !cv::solvePnP(markerPoints, markerCorners[i], camMatrixNew, distCoeffs, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
-                    continue;
-
-                if (first_detection.count(marker_id) == 0)
+                if (currently_detected.find(prev_marker) == currently_detected.end())
                 {
-                    first_detection[marker_id] = true;
-                    first_tvecs[marker_id] = tvecs[i];
-                    first_rvecs[marker_id] = rvecs[i];
+                    RCLCPP_WARN(this->get_logger(), "%s: Marker %d lost, reinitializing", camera_name.c_str(), prev_marker);
+                    first_detection.erase(prev_marker);
+                    first_tvecs.erase(prev_marker);
+                    first_rvecs.erase(prev_marker);
                 }
-                else
-                {
-                    const double rotation_threshold = 0.02;
-                    const double zero_crossing_threshold = 0.02;
-                    cv::Vec3d& prev_rvec = first_rvecs[marker_id];
-                    for (int j = 0; j < 3; j++)
-                    {
-                        double diff = std::abs(rvecs[i][j] - prev_rvec[j]);
-                        bool sign_changed = (rvecs[i][j] * prev_rvec[j] < 0);
-                        if (sign_changed && diff > rotation_threshold && diff >= zero_crossing_threshold)
-                            rvecs[i][j] = -rvecs[i][j];
-                    }
-                    first_tvecs[marker_id] = tvecs[i];
-                    first_rvecs[marker_id] = rvecs[i];
-                }
+            }
+            previously_detected = currently_detected;
 
-                detected_markers[marker_id] = {rvecs[i], tvecs[i]};
-
-                // Draw markers and axes
-                cv::aruco::drawDetectedMarkers(undistortedFrame, markerCorners, markerIds);
-                std::vector<cv::Point3f> axisPoints = {
-                    cv::Point3f(0, 0, 0), cv::Point3f(marker_length_ * 1.5f, 0, 0),
-                    cv::Point3f(0, marker_length_ * 1.5f, 0), cv::Point3f(0, 0, marker_length_ * 1.5f)
+            if (!markerIds.empty())
+            {
+                std::vector<cv::Vec3d> rvecs(markerIds.size()), tvecs(markerIds.size());
+                std::vector<cv::Point3f> markerPoints = {
+                    cv::Point3f(-marker_length_ / 2, marker_length_ / 2, 0),
+                    cv::Point3f(marker_length_ / 2, marker_length_ / 2, 0),
+                    cv::Point3f(marker_length_ / 2, -marker_length_ / 2, 0),
+                    cv::Point3f(-marker_length_ / 2, -marker_length_ / 2, 0)
                 };
-                std::vector<cv::Point2f> imagePoints;
-                cv::projectPoints(axisPoints, rvecs[i], tvecs[i], camMatrix, distCoeffs, imagePoints);
-                cv::line(undistortedFrame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2);
-                cv::line(undistortedFrame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2);
-                cv::line(undistortedFrame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2);
+
+                for (size_t i = 0; i < markerIds.size(); ++i)
+                {
+                    int marker_id = markerIds[i];
+                    if (markerCorners[i].size() != 4 || !cv::solvePnP(markerPoints, markerCorners[i], camMatrixNew, distCoeffs, rvecs[i], tvecs[i], false, cv::SOLVEPNP_IPPE_SQUARE))
+                        continue;
+
+                    if (first_detection.count(marker_id) == 0)
+                    {
+                        first_detection[marker_id] = true;
+                        first_tvecs[marker_id] = tvecs[i];
+                        first_rvecs[marker_id] = rvecs[i];
+                    }
+                    else
+                    {
+                        const double rotation_threshold = 0.02;
+                        const double zero_crossing_threshold = 0.02;
+                        cv::Vec3d& prev_rvec = first_rvecs[marker_id];
+                        for (int j = 0; j < 3; j++)
+                        {
+                            double diff = std::abs(rvecs[i][j] - prev_rvec[j]);
+                            bool sign_changed = (rvecs[i][j] * prev_rvec[j] < 0);
+                            if (sign_changed && diff > rotation_threshold && diff >= zero_crossing_threshold)
+                                rvecs[i][j] = -rvecs[i][j];
+                        }
+                        first_tvecs[marker_id] = tvecs[i];
+                        first_rvecs[marker_id] = rvecs[i];
+                    }
+
+                    detected_markers[marker_id] = {rvecs[i], tvecs[i]};
+
+                    cv::aruco::drawDetectedMarkers(undistortedFrame, markerCorners, markerIds);
+                    std::vector<cv::Point3f> axisPoints = {
+                        cv::Point3f(0, 0, 0), cv::Point3f(marker_length_ * 1.5f, 0, 0),
+                        cv::Point3f(0, marker_length_ * 1.5f, 0), cv::Point3f(0, 0, marker_length_ * 1.5f)
+                    };
+                    std::vector<cv::Point2f> imagePoints;
+                    cv::projectPoints(axisPoints, rvecs[i], tvecs[i], camMatrix, distCoeffs, imagePoints);
+                    cv::line(undistortedFrame, imagePoints[0], imagePoints[1], cv::Scalar(0, 0, 255), 2);
+                    cv::line(undistortedFrame, imagePoints[0], imagePoints[2], cv::Scalar(0, 255, 0), 2);
+                    cv::line(undistortedFrame, imagePoints[0], imagePoints[3], cv::Scalar(255, 0, 0), 2);
+                }
             }
         }
 
         cv::imshow(camera_name, undistortedFrame);
-        cv::setMouseCallback(camera_name, onMouse, this);
+        if (camera_name == "Camera 1") {
+            cv::setMouseCallback(camera_name, onMouse, &mouse_data_1_);
+        } else if (camera_name == "Camera 2") {
+            cv::setMouseCallback(camera_name, onMouse, &mouse_data_2_);
+        }
         cv::waitKey(1);
 
         return detected_markers;
@@ -284,7 +286,6 @@ private:
         std::lock_guard<std::mutex> lock(detection_mutex_);
         std::unordered_map<int, std::pair<cv::Vec3d, cv::Vec3d>> fused_markers;
 
-        // Collect all unique marker IDs
         std::unordered_set<int> all_ids;
         for (const auto& [id, _] : markers_1) all_ids.insert(id);
         for (const auto& [id, _] : markers_2) all_ids.insert(id);
@@ -329,7 +330,6 @@ private:
             marker_transform(row, 3) = tvec[row];
         }
 
-        // Since fusion averages poses in camera frame, transform to world frame using camera 1's transform as reference
         Eigen::Matrix4d world_to_marker = camera_transform_1_ * marker_transform;
 
         geometry_msgs::msg::TransformStamped transformStamped;
@@ -356,12 +356,12 @@ private:
 
     static void onMouse(int event, int x, int y, int flags, void* userdata)
     {
-        ArucoDetectorDual* self = static_cast<ArucoDetectorDual*>(userdata);
+        MouseCallbackData* data = static_cast<MouseCallbackData*>(userdata);
         if (event == cv::EVENT_MOUSEMOVE)
         {
             std::stringstream ss;
-            ss << "Camera - Cursor: (" << x << ", " << y << ")";
-            cv::setWindowTitle("Camera 1", ss.str()); // Adjust for both windows if needed
+            ss << data->window_name << " - Cursor: (" << x << ", " << y << ")";
+            cv::setWindowTitle(data->window_name, ss.str());
         }
     }
 };
@@ -369,7 +369,7 @@ private:
 int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ArucoDetectorDual>());
+    rclcpp::spin(std::make_shared<ArucoDetectorDouble>());
     rclcpp::shutdown();
     return 0;
 }
