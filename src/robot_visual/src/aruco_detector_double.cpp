@@ -255,6 +255,11 @@ private:
 
                     detected_markers[marker_id] = {rvecs[i], tvecs[i]};
 
+                    // RCLCPP_INFO(this->get_logger(), "%s: Marker %d - rvec: [%f, %f, %f], tvec: [%f, %f, %f]",
+                    //             camera_name.c_str(), marker_id,
+                    //             rvecs[i][0], rvecs[i][1], rvecs[i][2],
+                    //             tvecs[i][0], tvecs[i][1], tvecs[i][2]);
+
                     cv::aruco::drawDetectedMarkers(undistortedFrame, markerCorners, markerIds);
                     std::vector<cv::Point3f> axisPoints = {
                         cv::Point3f(0, 0, 0), cv::Point3f(marker_length_ * 1.5f, 0, 0),
@@ -292,28 +297,62 @@ private:
 
         for (int id : all_ids)
         {
-            cv::Vec3d rvec, tvec;
-            int count = 0;
+            std::vector<cv::Vec3d> rvecs, tvecs;
+            std::vector<Eigen::Matrix4d> camera_transforms;
 
             if (markers_1.count(id))
             {
-                rvec += markers_1.at(id).first;
-                tvec += markers_1.at(id).second;
-                count++;
+                rvecs.push_back(markers_1.at(id).first);
+                tvecs.push_back(markers_1.at(id).second);
+                camera_transforms.push_back(camera_transform_1_);
             }
             if (markers_2.count(id))
             {
-                rvec += markers_2.at(id).first;
-                tvec += markers_2.at(id).second;
-                count++;
+                rvecs.push_back(markers_2.at(id).first);
+                tvecs.push_back(markers_2.at(id).second);
+                camera_transforms.push_back(camera_transform_2_);
             }
 
-            if (count > 0)
+            if (!rvecs.empty())
             {
-                rvec /= count;
-                tvec /= count;
+                // Average translation with explicit cast to double
+                cv::Vec3d tvec = {0, 0, 0};
+                for (const auto& t : tvecs) tvec += t;
+                tvec /= static_cast<double>(tvecs.size());
+
+                // Convert rvecs to quaternions and average
+                std::vector<Eigen::Quaterniond> quaternions;
+                for (const auto& rvec : rvecs)
+                {
+                    cv::Mat rot_mat;
+                    cv::Rodrigues(rvec, rot_mat);
+                    Eigen::Matrix3d eigen_rot;
+                    for (int i = 0; i < 3; ++i)
+                        for (int j = 0; j < 3; ++j)
+                            eigen_rot(i, j) = rot_mat.at<double>(i, j);
+                    quaternions.emplace_back(eigen_rot);
+                }
+
+                // Simple quaternion averaging
+                Eigen::Quaterniond avg_quat(0, 0, 0, 0);
+                for (const auto& q : quaternions)
+                {
+                    avg_quat.coeffs() += q.coeffs();
+                }
+                avg_quat.coeffs() /= static_cast<double>(quaternions.size());
+                avg_quat.normalize();
+
+                // Convert back to rvec
+                Eigen::Matrix3d avg_rot = avg_quat.toRotationMatrix();
+                cv::Mat avg_rot_mat(3, 3, CV_64F);
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 3; ++j)
+                        avg_rot_mat.at<double>(i, j) = avg_rot(i, j);
+                cv::Vec3d rvec;
+                cv::Rodrigues(avg_rot_mat, rvec);
+
                 fused_markers[id] = {rvec, tvec};
-                publishTransform(rvec, tvec, id, count == 2 ? "both" : (markers_1.count(id) ? "camera_1" : "camera_2"));
+                publishTransform(rvec, tvec, id, rvecs.size() == 2 ? "both" : (markers_1.count(id) ? "camera_1" : "camera_2"));
             }
         }
     }
@@ -330,7 +369,20 @@ private:
             marker_transform(row, 3) = tvec[row];
         }
 
-        Eigen::Matrix4d world_to_marker = camera_transform_1_ * marker_transform;
+        // Use appropriate camera transform based on source
+        Eigen::Matrix4d world_to_marker;
+        if (source == "camera_2")
+        {
+            world_to_marker = camera_transform_2_ * marker_transform;
+        }
+        else if (source == "camera_1")
+        {
+            world_to_marker = camera_transform_1_ * marker_transform;
+        }
+        else // "both" - use camera_1 as default
+        {
+            world_to_marker = camera_transform_1_ * marker_transform;
+        }
 
         geometry_msgs::msg::TransformStamped transformStamped;
         transformStamped.header.stamp = this->now();
@@ -351,7 +403,12 @@ private:
         if (marker_id == 0)
             tf_detected_publisher_->publish(transformStamped);
 
-        // RCLCPP_INFO(this->get_logger(), "Marker %d fused from %s", marker_id, source.c_str());
+        // RCLCPP_INFO(this->get_logger(), "Marker %d fused from %s - tvec: [%f, %f, %f], quat: [%f, %f, %f, %f]",
+        //             marker_id, source.c_str(),
+        //             transformStamped.transform.translation.x,
+        //             transformStamped.transform.translation.y,
+        //             transformStamped.transform.translation.z,
+        //             quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
     }
 
     static void onMouse(int event, int x, int y, int flags, void* userdata)
