@@ -392,6 +392,23 @@ private:
         // RCLCPP_INFO(this->get_logger(), "tvec: [%f, %f, %f]", tvec[0], tvec[1], tvec[2]);
         // RCLCPP_INFO(this->get_logger(), "Projected pixel: [%d, %d]", pixel_x, pixel_y);
 
+        // Define 3D points for the world origin axes
+        std::vector<cv::Point3f> worldAxes = {
+            cv::Point3f(0, 0, 0),          // Origin
+            cv::Point3f(0.05, 0, 0),       // X-axis (red)
+            cv::Point3f(0, 0.05, 0),       // Y-axis (green)
+            cv::Point3f(0, 0, 0.05)        // Z-axis (blue)
+        };
+
+        // Project the 3D points to the image plane
+        std::vector<cv::Point2f> imagePoints2;
+        cv::projectPoints(worldAxes, rvec, tvec, camMatrix_, distCoeffs_, imagePoints2);
+
+        // Draw the coordinate frame at the world origin
+        cv::line(undistortedFrame, imagePoints2[0], imagePoints2[1], cv::Scalar(0, 0, 255), 3); // X-axis (Red)
+        cv::line(undistortedFrame, imagePoints2[0], imagePoints2[2], cv::Scalar(0, 255, 0), 3); // Y-axis (Green)
+        cv::line(undistortedFrame, imagePoints2[0], imagePoints2[3], cv::Scalar(255, 0, 0), 3); // Z-axis (Blue)
+
         
         // Resize images
         int newWidth = width; 
