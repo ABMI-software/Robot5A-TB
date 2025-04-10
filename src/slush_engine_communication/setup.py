@@ -23,7 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'slush_node = slush_engine_communication.slush_node:main',
-            'joint_syns_moveit_node = slush_engine_communication.joint_syns_moveit_node:main',
+            'joint_sync_moveit_node = slush_engine_communication.joint_sync_moveit_node:main',
         ],
     },
     # package_data={
