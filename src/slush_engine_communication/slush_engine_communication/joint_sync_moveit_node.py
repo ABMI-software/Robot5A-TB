@@ -17,7 +17,7 @@ class JointSyncMoveItNode(Node):
 
         # Define joint names for arm and gripper (matches SRDF)
         self.arm_joint_names = ["R0_Yaw", "R1_Pitch", "R2_Pitch", "R3_Yaw", "R4_Pitch"]
-        self.gripper_joint_names = ["ServoGear", "LeftGripper", "RightGripper", "LeftPivotArm", "RightPivotArm", "PassifGear"]
+        self.gripper_joint_names = ["ServoGear"]  # Only real hardware joint
         self.all_joint_names = self.arm_joint_names + self.gripper_joint_names
         self.expected_command_length = 6  # 5 arm joints + 1 ServoGear
         self.commands = []
@@ -158,9 +158,9 @@ class JointSyncMoveItNode(Node):
                 self.execute_command()
                 return
 
-            arm_command = command[:5]
-            servo_gear = command[5]
-            gripper_command = [servo_gear, -servo_gear, servo_gear, -servo_gear, -servo_gear, -servo_gear]
+            arm_command = command[:5]  # First 5 values for arm joints
+            servo_gear = command[5]   # Last value for ServoGear
+            gripper_command = [servo_gear]  # Only ServoGear for gripper
 
             self.execute_group_command(self.arm_move_group_client, "arm", self.arm_joint_names, arm_command)
             self.is_executing_arm = True
@@ -222,7 +222,7 @@ class JointSyncMoveItNode(Node):
             self.is_executing_arm = False
             command = self.commands[self.current_command_index]
             servo_gear = command[5]
-            gripper_command = [servo_gear, -servo_gear, servo_gear, -servo_gear, -servo_gear, -servo_gear]
+            gripper_command = [servo_gear]  # Only ServoGear for gripper
             self.get_logger().debug("Arm completed, starting gripper")
             self.execute_group_command(self.gripper_move_group_client, "gripper", self.gripper_joint_names, gripper_command)
             self.is_executing_gripper = True
