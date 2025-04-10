@@ -106,7 +106,7 @@ class JointSyncMoveItNode(Node):
         self.get_logger().info(f"Initialized CSV log at {self.csv_file_path}")
 
     def load_commands(self, filename):
-        package_share_directory = get_package_share_directory('robot_data_process')
+        package_share_directory = get_package_share_directory('slush_engine_communication')
         full_path = os.path.join(package_share_directory, filename)
         self.get_logger().info(f"Attempting to load commands from: {full_path}")
         if os.path.isfile(full_path):
