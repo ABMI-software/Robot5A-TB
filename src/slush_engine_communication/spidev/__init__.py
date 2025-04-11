@@ -1,1 +1,0 @@
-from .spidev import SpiDev

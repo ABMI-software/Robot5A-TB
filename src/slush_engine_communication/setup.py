@@ -6,7 +6,7 @@ package_name = 'slush_engine_communication'
 setup(
     name=package_name,
     version='0.0.1',
-    packages=[package_name, 'spidev', 'RPi', 'smbus2'] + find_packages(),
+    packages=[package_name] + find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
@@ -26,7 +26,4 @@ setup(
             'joint_sync_moveit_node = slush_engine_communication.joint_sync_moveit_node:main',
         ],
     },
-    # package_data={
-    #     'spidev': ['spidev.cpython-310-x86_64-linux-gnu.so'],  # Removed
-    # },
 )

@@ -26,6 +26,7 @@ class JointSyncMoveItNode(Node):
         self.is_executing_gripper = False
         self.command_delay = 1.0  # Delay in seconds between commands
         self.last_command_time = None
+        self.enable_logging = True  # Flag to control logging
 
         # Set CSV file path explicitly to workspace src directory
         self.csv_file_path = "/home/chipmunk-151/Robot5A-TB/src/slush_engine_communication/data_analysis/logs/joint_sync_log.csv"
@@ -139,6 +140,7 @@ class JointSyncMoveItNode(Node):
     def execute_command(self):
         if self.current_command_index >= len(self.commands):
             self.get_logger().info("All commands executed.")
+            self.enable_logging = False  # Stop logging
             return
 
         if not self.is_executing_arm and not self.is_executing_gripper:
@@ -171,8 +173,10 @@ class JointSyncMoveItNode(Node):
         goal = MoveGroup.Goal()
         goal.request.group_name = group_name
         goal.request.num_planning_attempts = 10
-        goal.request.allowed_planning_time = 5.0
+        goal.request.allowed_planning_time = 10.0    # Increased planning time for smoother plans
         goal.request.start_state.is_diff = True
+        goal.request.max_velocity_scaling_factor = 0.1  # Slow down to 30% of max speed
+        goal.request.max_acceleration_scaling_factor = 0.1  # Slow down to 30% of max acceleration
 
         constraints = Constraints()
         for name, pos in zip(joint_names, positions):
@@ -222,7 +226,7 @@ class JointSyncMoveItNode(Node):
             self.is_executing_arm = False
             command = self.commands[self.current_command_index]
             servo_gear = command[5]
-            gripper_command = [servo_gear]  # Only ServoGear for gripper
+            gripper_command = [servo_gear, -servo_gear, servo_gear, -servo_gear, -servo_gear, -servo_gear]
             self.get_logger().debug("Arm completed, starting gripper")
             self.execute_group_command(self.gripper_move_group_client, "gripper", self.gripper_joint_names, gripper_command)
             self.is_executing_gripper = True
@@ -241,6 +245,10 @@ class JointSyncMoveItNode(Node):
             self.get_logger().debug("Joint states received, monitoring...")
 
     def log_to_csv(self):
+        if not self.enable_logging:
+            self.get_logger().debug("Logging disabled, skipping CSV write.")
+            return
+
         current_time = time.time()
         command = (str(self.commands[self.current_command_index]) if (self.is_executing_arm or self.is_executing_gripper) and
                    self.current_command_index < len(self.commands) else "Idle")
