@@ -245,7 +245,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
 # Run the function with your image set
 calibrate_camera_charuco_set_axis(
-    images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images_charuco/*.jpg",
+    images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images2_charuco/*.jpg",
     squares_x=8,
     squares_y=6,
     square_size=0.04,
