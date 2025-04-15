@@ -53,7 +53,7 @@ def euler_to_rotation_matrix(roll, pitch, yaw):
     ])
     
     # Combined rotation matrix (Z * Y * X)
-    R = Rz @ Ry @ Rx
+    R = Rx @ Ry @ Rz
     return R
 
 def create_transform_matrix(roll, pitch, yaw, tx, ty, tz):
@@ -208,10 +208,10 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
 
     # Define new origin transformation using Euler angles and translation
     roll = -90    # degrees (around X-axis)
-    pitch = 0    # degrees (around Y-axis)
-    yaw = -90    # degrees (around Z-axis)
-    tx = 0.300   # meters (translation along X)
-    ty = -0.055  # meters (translation along Y)
+    pitch = 180    # degrees (around Y-axis)
+    yaw = 0    # degrees (around Z-axis)
+    tx = 0.050   # meters (translation along X)
+    ty = 0.050  # meters (translation along Y)
     tz = 0       # meters (translation along Z)
     
     new_origin_transform = create_transform_matrix(roll, pitch, yaw, tx, ty, tz)
@@ -231,7 +231,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
         cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
         drawAxis(imgUndist, camMatrixNew, dist, avg_rvec, avg_tvec, marker_size * 1.5)
         cv.imshow("Detected Charuco Board (Average Pose)", imgUndist)
-        cv.waitKey(5000)
+        cv.waitKey(15000)
 
     print("\n=== Average Pose (World to Camera) ===")
     print(f"Rotation Vector (rvec):\n{avg_rvec}")
