@@ -211,8 +211,8 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
     pitch = 180    # degrees (around Y-axis)
     yaw = 0    # degrees (around Z-axis)
     tx = 0.050   # meters (translation along X)
-    ty = 0.050  # meters (translation along Y)
-    tz = 0       # meters (translation along Z)
+    ty = 0.205  # meters (translation along Y)
+    tz = 0.10      # meters (translation along Z)
     
     new_origin_transform = create_transform_matrix(roll, pitch, yaw, tx, ty, tz)
     print("New Origin Transformation Matrix:")
