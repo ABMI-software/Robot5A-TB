@@ -210,7 +210,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
     roll = -90    # degrees (around X-axis)
     pitch = 0    # degrees (around Y-axis)
     yaw = -90    # degrees (around Z-axis)
-    tx = 0.070   # meters (translation along X)
+    tx = 0.300   # meters (translation along X)
     ty = -0.055  # meters (translation along Y)
     tz = 0       # meters (translation along Z)
     

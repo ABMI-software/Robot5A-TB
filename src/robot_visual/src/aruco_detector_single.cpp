@@ -190,6 +190,10 @@ private:
         // Convert to grayscale
         cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
 
+
+        // Invert grayscale image to handle inverted ArUco markers (white markers on black background)
+        cv::bitwise_not(gray, gray);
+
         // Reduce noise while preserving edges
         cv::bilateralFilter(gray, filtered, 3, 75, 20);
 

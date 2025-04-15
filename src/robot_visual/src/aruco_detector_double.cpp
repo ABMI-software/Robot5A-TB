@@ -188,6 +188,8 @@ private:
             cv::undistort(frame, undistortedFrame, camMatrixNew, distCoeffs);
 
             cv::cvtColor(undistortedFrame, gray, cv::COLOR_BGR2GRAY);
+            // Invert grayscale image to handle inverted ArUco markers (white markers on black background)
+            cv::bitwise_not(gray, gray);
             cv::bilateralFilter(gray, filtered, 3, 75, 20);
             cv::equalizeHist(filtered, enhanced);
 
@@ -207,7 +209,7 @@ private:
             {
                 if (currently_detected.find(prev_marker) == currently_detected.end())
                 {
-                    RCLCPP_WARN(this->get_logger(), "%s: Marker %d lost, reinitializing", camera_name.c_str(), prev_marker);
+                    // RCLCPP_WARN(this->get_logger(), "%s: Marker %d lost, reinitializing", camera_name.c_str(), prev_marker);
                     first_detection.erase(prev_marker);
                     first_tvecs.erase(prev_marker);
                     first_rvecs.erase(prev_marker);
