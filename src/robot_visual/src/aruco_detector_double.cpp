@@ -27,8 +27,8 @@ public:
 
         marker_length_ = 0.03;
 
-        cap_1_.open(4, cv::CAP_V4L2);
-        cap_2_.open(6, cv::CAP_V4L2);
+        cap_1_.open(6, cv::CAP_V4L2);
+        cap_2_.open(4, cv::CAP_V4L2);
         if (!cap_1_.isOpened() || !cap_2_.isOpened())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to open one or both cameras (1: %d, 2: %d)",
@@ -420,7 +420,7 @@ private:
         transformStamped.transform.rotation.w = quaternion.w();
 
         tf_broadcaster_.sendTransform(transformStamped);
-        if (marker_id == 0)
+        if (marker_id == 19)
             tf_detected_publisher_->publish(transformStamped);
 
         // RCLCPP_INFO(this->get_logger(), "Marker %d fused from %s - tvec: [%f, %f, %f], quat: [%f, %f, %f, %f]",

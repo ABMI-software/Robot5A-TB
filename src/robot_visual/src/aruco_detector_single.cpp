@@ -28,7 +28,7 @@ public:
         marker_length_ = 0.03;
 
         // Open camera
-        cap_.open(4, cv::CAP_V4L2);
+        cap_.open(6, cv::CAP_V4L2);
         if (!cap_.isOpened())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to open the camera");
@@ -113,7 +113,7 @@ private:
         }
         fs["camera_matrix"] >> camMatrix;
         fs["distortion_coefficients"] >> distCoeffs;
-        fs.release();
+        fs.release();      
     }
 
     void readTransforms(const std::string &filename, int camera_id)
@@ -476,7 +476,7 @@ private:
         transformStamped.transform.rotation.w = quaternion.w();
 
         tf_broadcaster_.sendTransform(transformStamped);
-        if (marker_id == 0)
+        if (marker_id == 19)
         {
             tf_detected_publisher_->publish(transformStamped); // Publish detected transform
         }
