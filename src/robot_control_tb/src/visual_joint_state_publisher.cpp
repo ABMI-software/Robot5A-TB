@@ -162,6 +162,7 @@ void VisualJointStatePublisher::load_config(const std::string &config_file) {
       tf2::Vector3 trans(translation[0], translation[1], translation[2]);
       tf2::Quaternion rot;
       rot.setRPY(rotation[0], rotation[1], rotation[2]);
+      // rot.setRPY(rotation[2], rotation[1], rotation[0]);
       rot.normalize();
 
       marker_info.marker_to_link_tf.setOrigin(trans);
@@ -298,11 +299,11 @@ void VisualJointStatePublisher::timer_callback() {
         double R2_Pitch_angle = get_rotation_angle_about_axis(link2_to_link3.getRotation(), tf2::Vector3(1, 0, 0));
         double R3_Yaw_angle = get_rotation_angle_about_axis(link3_to_link4.getRotation(), tf2::Vector3(0, 1, 0));
 
-        // // Correct R0_Yaw angle by adding Pi
-        // R0_Yaw_angle += (M_PI/2);
-        // if (R0_Yaw_angle > (M_PI/2)) {
-        //     R0_Yaw_angle -= 2 * (M_PI/2); // Normalize the angle to the range [-π, π]
-        // }
+        // Correct R0_Yaw angle by adding Pi
+        R0_Yaw_angle += (M_PI);
+        if (R0_Yaw_angle > (M_PI)) {
+            R0_Yaw_angle -= 2 * (M_PI); // Normalize the angle to the range [-π, π]
+        }
 
         // Assign joint angles
         std::vector<double> joint_positions(joint_names_.size(), 0.0); // Initialize with zeros
