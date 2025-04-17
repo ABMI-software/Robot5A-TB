@@ -8,6 +8,10 @@ public:
     JointStateBridge()
         : Node("joint_state_bridge")
     {
+        // Declare parameter for open-loop mode
+        this->declare_parameter<bool>("open_loop", true); // Default to open-loop
+        open_loop_ = this->get_parameter("open_loop").as_bool();
+
         // Define all joint names
         joint_names_ = {"R0_Yaw", "R1_Pitch", "R2_Pitch", "R3_Yaw", "R4_Pitch", "ServoGear"};
 
@@ -20,10 +24,12 @@ public:
         true_joint_states_->effort.resize(joint_names_.size(), 0.0);
 
         // Initialize subscribers
-        visual_joint_state_subscriber_ = this->create_subscription<sensor_msgs::msg::JointState>(
-            "/visual_joint_states",
-            rclcpp::QoS(10).reliable(),
-            std::bind(&JointStateBridge::visual_joint_state_callback, this, std::placeholders::_1));
+        if (!open_loop_) {
+            visual_joint_state_subscriber_ = this->create_subscription<sensor_msgs::msg::JointState>(
+                "/visual_joint_states",
+                rclcpp::QoS(10).reliable(),
+                std::bind(&JointStateBridge::visual_joint_state_callback, this, std::placeholders::_1));
+        }
 
         arm_controller_subscriber_ = this->create_subscription<control_msgs::msg::JointTrajectoryControllerState>(
             "/arm_controller/controller_state",
@@ -61,8 +67,8 @@ private:
         true_joint_states_->header.stamp = this->now();
         joint_state_publisher_->publish(*true_joint_states_);
 
-        // If we have visual or controller data, stop the timer
-        if (visual_joint_states_ != nullptr || (arm_joint_states_ != nullptr && gripper_joint_states_ != nullptr)) {
+        // If we have controller data, stop the timer
+        if (arm_joint_states_ != nullptr && gripper_joint_states_ != nullptr) {
             timer_->cancel();
         }
     }
@@ -70,7 +76,7 @@ private:
     void visual_joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg)
     {
         visual_joint_states_ = msg;
-        if (true_joint_states_ != nullptr) {
+        if (!open_loop_ && true_joint_states_ != nullptr) {
             publish_combined_joint_states();
         }
     }
@@ -125,11 +131,11 @@ private:
         // Publish the true joint states
         true_joint_state_publisher_->publish(*true_joint_states_);
 
-        // If visual data is available, combine and publish
-        if (visual_joint_states_ != nullptr) {
-            publish_combined_joint_states();
-        } else {
+        // In open-loop mode or if no visual data, publish true joint states to /joint_states
+        if (open_loop_ || visual_joint_states_ == nullptr) {
             joint_state_publisher_->publish(*true_joint_states_);
+        } else {
+            publish_combined_joint_states();
         }
     }
 
@@ -173,6 +179,7 @@ private:
     }
 
     // Member variables
+    bool open_loop_;
     std::vector<std::string> joint_names_;
     sensor_msgs::msg::JointState::SharedPtr true_joint_states_;
     sensor_msgs::msg::JointState::SharedPtr visual_joint_states_;
