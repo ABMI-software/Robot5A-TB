@@ -22,6 +22,7 @@ class SlushNode(Node):
             "R4_Pitch": Motor(5),
             "ServoGear": Motor(6)
         }
+        self.last_positions = {name: None for name in self.motors}  # Store last commanded position
         for name, motor in self.motors.items():
             motor.resetDev()                  # Reset the motor
             motor.setMicroSteps(16)           # Set microstepping to 1/16 for smoother motion
@@ -40,10 +41,21 @@ class SlushNode(Node):
     def command_callback(self, msg):
         for name, steps in zip(msg.name, msg.position):
             if name in self.motors:
-                self.motors[name].move(int(steps))  # Steps as integer
-                debug_msg = String()
-                debug_msg.data = f"Moved {name} to {steps} steps"
-                self.debug_pub.publish(debug_msg)
+                steps_int = int(steps)  # Convert position to integer steps
+                # Invert steps for R0_Yaw and R3_Yaw
+                if name in ["R0_Yaw", "R3_Yaw"]:
+                    steps_int = -steps_int
+                # Check if this is the first command or if the position has changed
+                if self.last_positions[name] is None or steps_int != self.last_positions[name]:
+                    self.motors[name].move(steps_int)  # Send move command
+                    self.last_positions[name] = steps_int  # Update last position
+                    debug_msg = String()
+                    debug_msg.data = f"Moved {name} to {steps_int} steps"
+                    self.debug_pub.publish(debug_msg)
+                else:
+                    debug_msg = String()
+                    debug_msg.data = f"Ignored repeated command for {name} at {steps_int} steps"
+                    self.debug_pub.publish(debug_msg)
 
     def shutdown_hook(self):
         """Free all motors on shutdown."""
