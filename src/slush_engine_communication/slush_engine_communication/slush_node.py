@@ -23,14 +23,70 @@ class SlushNode(Node):
             "ServoGear": Motor(6)
         }
         self.last_positions = {name: None for name in self.motors}  # Store last commanded position
+
+        # Define independent parameters for each motor
+        self.motor_configs = {
+            "R0_Yaw": {
+                "micro_steps": 16,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (11, 11, 50, 50)  # Hold, run, accel, decel currents
+            },
+            "R1_Pitch": {
+                "micro_steps": 16,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (40, 40, 50, 50)
+            },
+            "R2_Pitch": {
+                "micro_steps": 8,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (32, 32, 50, 50)
+            },
+            "R3_Yaw": {
+                "micro_steps": 16,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (27, 27, 50, 50)
+            },
+            "R4_Pitch": {
+                "micro_steps": 16,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (20, 20, 50, 50)
+            },
+            "ServoGear": {
+                "micro_steps": 32,
+                "max_speed": 500,
+                "accel": 30,
+                "decel": 30,
+                "current": (30, 30, 50, 50)
+            }
+        }
+
+        # Initialize each motor with its specific parameters
         for name, motor in self.motors.items():
-            motor.resetDev()                  # Reset the motor
-            motor.setMicroSteps(16)           # Set microstepping to 1/16 for smoother motion
-            motor.setMaxSpeed(500)            # Set a low max speed for slow motion
-            motor.setAccel(30)                # Set acceleration
-            motor.setDecel(30)                # Set deceleration
-            motor.setCurrent(50, 50, 50, 50)  # Set motor currents (adjust as needed)
-            self.get_logger().info(f"Configured motor {name}")
+            config = self.motor_configs[name]
+            motor.resetDev()  # Reset the motor
+            motor.setMicroSteps(config["micro_steps"])
+            motor.setMaxSpeed(config["max_speed"])
+            motor.setAccel(config["accel"])
+            motor.setDecel(config["decel"])
+            motor.setCurrent(*config["current"])  # Unpack current tuple
+            self.get_logger().info(
+                f"Configured motor {name}: "
+                f"micro_steps={config['micro_steps']}, "
+                f"max_speed={config['max_speed']}, "
+                f"accel={config['accel']}, "
+                f"decel={config['decel']}, "
+                f"current={config['current']}"
+            )
 
         self.sub = self.create_subscription(
             JointState, '/slush_commands', self.command_callback, 10)
