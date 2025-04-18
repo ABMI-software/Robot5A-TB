@@ -31,35 +31,35 @@ class SlushNode(Node):
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (11, 11, 50, 50)  # Hold, run, accel, decel currents
+                "current": (3, 11, 11, 11)  # Hold, run, accel, decel currents
             },
             "R1_Pitch": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (40, 40, 50, 50)
+                "current": (50, 42, 42, 42)
             },
             "R2_Pitch": {
                 "micro_steps": 8,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (32, 32, 50, 50)
+                "current": (50, 40, 40, 40)
             },
             "R3_Yaw": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (27, 27, 50, 50)
+                "current": (40, 30, 30, 30)
             },
             "R4_Pitch": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (20, 20, 50, 50)
+                "current": (6, 50, 50, 50)
             },
             "ServoGear": {
                 "micro_steps": 32,
@@ -99,7 +99,7 @@ class SlushNode(Node):
             if name in self.motors:
                 steps_int = int(steps)  # Convert position to integer steps
                 # Invert steps for R0_Yaw and R3_Yaw
-                if name in ["R0_Yaw", "R3_Yaw"]:
+                if name in ["R0_Yaw", "R2_Pitch"]:
                     steps_int = -steps_int
                 # Check if this is the first command or if the position has changed
                 if self.last_positions[name] is None or steps_int != self.last_positions[name]:
