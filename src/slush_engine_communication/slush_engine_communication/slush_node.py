@@ -31,35 +31,40 @@ class SlushNode(Node):
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (3, 11, 11, 11)  # Hold, run, accel, decel currents
+                "current": (50, 89, 89, 89),  # 3 A
+                "overcurrent_ma": 3375
             },
             "R1_Pitch": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (50, 42, 42, 42)
+                "current": (50, 90, 90, 90),  # 3.2 A total (2 × 1.6 A)
+                "overcurrent_ma": 3375
             },
             "R2_Pitch": {
                 "micro_steps": 8,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (50, 40, 40, 40)
+                "current": (50, 89, 89, 89),  # 1.33 A
+                "overcurrent_ma": 1500
             },
             "R3_Yaw": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (40, 30, 30, 30)
+                "current": (50, 89, 89, 89),  # 1 A
+                "overcurrent_ma": 1125
             },
             "R4_Pitch": {
                 "micro_steps": 16,
                 "max_speed": 500,
                 "accel": 30,
                 "decel": 30,
-                "current": (6, 50, 50, 50)
+                "current": (50, 85, 85, 85),  # 1.6 A
+                "overcurrent_ma": 1875
             },
             "ServoGear": {
                 "micro_steps": 32,
