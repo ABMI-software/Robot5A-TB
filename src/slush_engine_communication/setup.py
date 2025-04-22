@@ -24,6 +24,7 @@ setup(
         'console_scripts': [
             'slush_node = slush_engine_communication.slush_node:main',
             'joint_sync_moveit_node = slush_engine_communication.joint_sync_moveit_node:main',
+            'steps_per_radian_node = slush_engine_communication.steps_per_radian_node:main',
         ],
     },
 )
