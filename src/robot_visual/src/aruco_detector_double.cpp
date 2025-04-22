@@ -238,7 +238,8 @@ private:
                         first_detection[marker_id] = true;
                         first_tvecs[marker_id] = tvecs[i];
                         first_rvecs[marker_id] = rvecs[i];
-                    } else {
+                     }
+                     else {
                         // Convert current and previous rvecs to rotation matrices
                         cv::Mat R_current, R_previous;
                         cv::Rodrigues(rvecs[i], R_current);
@@ -251,7 +252,7 @@ private:
 
                         // Check the angle of the relative rotation
                         double angle = cv::norm(rvec_diff);
-                        const double angle_threshold = 0.1; // ~5.7 degrees
+                        const double angle_threshold = 0.02; // ~5.7 degrees
 
                         // If the angle is large, it may indicate a sign flip or significant change
                         if (angle > angle_threshold) {
