@@ -231,7 +231,7 @@ def calibrate_camera_charuco_set_axis(images_pattern, squares_x, squares_y, squa
         cv.aruco.drawDetectedMarkers(imgUndist, corners, ids)
         drawAxis(imgUndist, camMatrixNew, dist, avg_rvec, avg_tvec, marker_size * 1.5)
         cv.imshow("Detected Charuco Board (Average Pose)", imgUndist)
-        cv.waitKey(5000)
+        cv.waitKey(15000)
 
     print("\n=== Average Pose (World to Camera) ===")
     print(f"Rotation Vector (rvec):\n{avg_rvec}")
