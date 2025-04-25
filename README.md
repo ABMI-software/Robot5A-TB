@@ -238,9 +238,53 @@ ros2 launch robot_moveit_config_tb demo.launch.py
 
 ### **Installation**
 ```bash
+cd ~/
 git clone https://github.com/ABMI-software/Robot5A-TB.git
-cd Robot5A-TB
-sudo apt install ros-humble-moveit ros-humble-gazebo-ros ros-humble-tf2-ros libeigen3-dev libyaml-cpp-dev
+```
+
+```bash
+ 
+    sudo apt-get install -y \
+ 
+        libgeometric-shapes-dev \
+ 
+        meshlab \
+ 
+        ros-humble-gazebo-ros-pkgs \
+ 
+        ros-humble-gazebo-ros2-control \
+ 
+        ros-humble-joint-state-broadcaster \
+ 
+        ros-humble-joint-state-publisher \
+ 
+        ros-humble-joint-trajectory-controller \
+ 
+        ros-humble-moveit \
+ 
+        ros-humble-robot-state-publisher \
+ 
+        ros-humble-ros2-control \
+ 
+        ros-humble-ros2-controllers \
+ 
+        ros-humble-rqt \
+ 
+        ros-humble-rqt-graph \
+ 
+        ros-humble-xacro \
+ 
+        ros-humble-diagnostic-updater \
+ 
+        ros-humble-rviz2 \
+ 
+        ros-humble-tf2-tools \
+ 
+        ros-humble-ros2bag
+ 
+```
+```bash  
+cd Robot5A-TB  
 colcon build
 source install/setup.bash
 ```
