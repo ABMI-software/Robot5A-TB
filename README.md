@@ -48,6 +48,7 @@ python3 script/data_average.py
 ```
 #### **Note:**
 Make sure the serial device (e.g., /dev/ttyUSB0) is connected and you have the correct permissions (sudo chmod a+rw /dev/ttyUSB0 or use udev rules) before launching.
+
 ---
 
 ### `src/robot_description_tb`
