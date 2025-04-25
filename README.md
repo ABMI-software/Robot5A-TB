@@ -28,7 +28,7 @@ This package allows the control of a 1D chariot and is primarily used for testin
   - `logs_processed/`: Contains averaged results and PDFs generated from logged data.
 
 - **Commands File:**
-  - `commands.txt`: Predefined list of motion or control commands sent to the chariot during tests.
+  - `commands.txt`: Predefined list of control commands (in MM) sent to the chariot during tests.
 
 #### **Usage:**
 
@@ -46,6 +46,7 @@ ros2 run chariot_control commands_executor_node.py
 python3 script/data_process.py
 python3 script/data_average.py
 ```
+#### **Note:**
 Make sure the serial device (e.g., /dev/ttyUSB0) is connected and you have the correct permissions (sudo chmod a+rw /dev/ttyUSB0 or use udev rules) before launching.
 ---
 
@@ -139,17 +140,17 @@ This package is responsible for interfacing with the SlushEngine stepper motor c
 
 - **Nodes:**
   - `slush_node.py`: Core node to communicate with the SlushEngine board via serial and execute received commands.
-  - `joint_sync_moveit_node.py`: Executes synchronized joint movements using trajectory data, optionally integrating with MoveIt.
+  - `joint_sync_moveit_node.py`: Executes synchronized joint movements using trajectory data, integrating with MoveIt.
   - `steps_per_radian_node.py`: Utility node to calibrate or convert steps to radians based on joint configuration.
 
 - **Slush Library:**
   - `Slush/`: Contains all logic and drivers for communicating with the SlushEngine board, including motor configuration and register access.
 
 - **Launch:**
-  - `joint_sync_moveit.launch.py`: Launch file for synchronized joint movements using MoveIt or predefined commands.
+  - `joint_sync_moveit.launch.py`: Launch file for synchronized joint movements using MoveIt with predefined commands.
 
 - **Config:**
-  - `joint_commands.txt`: A list of joint position commands (e.g., in steps or radians) for the SlushEngine to execute.
+  - `joint_commands.txt`: A list of joint position commands (e.g., in radians) for the SlushEngine to execute.
 
 - **Scripts:**
   - `slush_test.py`: Simple manual command test script for the SlushEngine.
