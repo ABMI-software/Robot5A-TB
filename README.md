@@ -101,6 +101,11 @@ This package handles camera calibration, ArUco marker detection, and visual join
   - `aruco_detector_double.cpp`: Processes dual-camera ArUco detection.
   - `camera_test_node.cpp`: Tests camera functionality.
 
+
+#### **Important:**
+The Nodes : "aruco_detector_single" and "aruco_detector_double" detect REVERSED ARUCO (INVERTED COLORS)
+----
+
 #### **Usage:**
 First, you take images with calibration_charuco_recording (10 of the board in all border os the image and 10 of the board from differents positions or heights). 
 Then, you start calibration_charuco_script, it's automatic.
