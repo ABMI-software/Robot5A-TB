@@ -288,6 +288,8 @@ cd Robot5A-TB
 colcon build
 source install/setup.bash
 ```
+For more info, look at the installation part of:
+https://github.com/ABMI-software/Robot5A-Simulation/tree/feat/matthieu-data-process
 
 ---
 
