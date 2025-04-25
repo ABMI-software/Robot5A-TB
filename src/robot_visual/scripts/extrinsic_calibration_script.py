@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # Paths
-image_path = "/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/extrinsic_images/camera_2_001.jpg"
-calibration_path = "/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_1_calibration.yaml"
+image_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/extrinsic_images/camera_1_007.jpg"
+calibration_path = "/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml"
 
 # Marker info
 marker_size = 0.03  # 3 cm
@@ -11,11 +11,11 @@ aruco_dict_type = cv2.aruco.DICT_6X6_250
 
 # Positions of markers in world frame
 marker_positions_world = {
-    0: (0.0475 + 0.11, 0.0475 - 0.1164, 0.0),
-    1: (0.0475 + 0.11, 0.3475 - 0.1164, 0.0),
-    2: (0.2475 + 0.11, 0.0475 - 0.1164, 0.0),
-    3: (0.2475 + 0.11, 0.3475 - 0.1164, 0.0),
-    4: (0.1475 + 0.11, 0.1975 - 0.1164, 0.0)
+    0: (-0.3725, 0.0725, 0.0),
+    1: (-0.0725, 0.0725, 0.0),
+    2: (-0.3725, -0.1275, 0.0),
+    3: (-0.0725, -0.1275, 0.0),
+    4: (-0.2225, -0.0275, 0.0)
 }
 
 def load_camera_calibration(calibration_file):
@@ -100,8 +100,11 @@ def main():
     transform_4x4 = np.eye(4, dtype=np.float32)
     transform_4x4[0:3, 0:3] = R_mat
     transform_4x4[0:3, 3] = tvec.flatten()
+
+    # Print the 4x4 transformation matrix in the desired format
     print("4x4 Transformation matrix (World to Camera):")
-    print(transform_4x4)
+    for i in range(4):
+        print(f"      - {transform_4x4[i].tolist()}")
 
     # Visualization (optional)
     cv2.aruco.drawDetectedMarkers(img, corners, ids)

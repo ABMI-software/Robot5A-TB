@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Directories
-CAMERA_1_DIR="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_1_images"
-CAMERA_2_DIR="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_2_images"
+CAMERA_1_DIR="/home/camera_aruco/src/robot_visual/config/camera_1_images"
+CAMERA_2_DIR="/home/camera_aruco/src/robot_visual/config/camera_2_images"
 
 # Rename camera_2_xxx.jpg in CAMERA_1_DIR to camera_1_xxx.jpg
 for file in "$CAMERA_1_DIR"/camera_2_*.jpg; do

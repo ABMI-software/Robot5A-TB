@@ -1,0 +1,75 @@
+# Use /bin/bash
+DOSHELL="/bin/bash"
+for file in .bashrc .bash_history
+do
+	[ -e "$PWD/$file" ] || continue
+	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "$PWD/$file:$HOME/$file")
+done
+
+# Map and export X things?
+if [ -n "$DISPLAY" ]
+then
+	for env in DISPLAY XAUTHORITY XSOCK
+	do
+		[ -n "$env" ] || continue
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--env "$env")
+	done
+	dotxauthority="${XAUTHORITY:-$HOME/.Xauthority}"
+	if [ -e "$dotxauthority" ]
+	then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "$dotxauthority:$HOME/.Xauthority")
+	fi
+	unset dotxauthority
+	xsock="${XSOCK:-/tmp/.X11-unix}"
+	if [ -e "$xsock" ]
+	then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "$xsock:/tmp/.X11-unix:ro")
+	fi
+	unset xsock
+	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--volume "/dev/dri:/dev/dri")
+	for dev in /dev/video*
+	do
+       	[[ -c "$dev" ]] || continue
+       	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+	done
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video0:/dev/video0")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video1:/dev/video1")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video2:/dev/video2")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video3:/dev/video3")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video4:/dev/video4")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/video5:/dev/video5")
+	
+	if [ -c /dev/video0 ]
+	then
+	  if gid="$(stat -c "%g" /dev/video0)"
+		then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--group-add "$gid")
+		fi
+		for dev in /dev/video*
+		do
+		[[ -c "$dev" ]] || continue
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+		done
+	fi
+
+	for dev in /dev/tty*
+	do
+       	[[ -c "$dev" ]] || continue
+       	DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+	done
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyACM0:/dev/ttyACM0")
+	#DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "/dev/ttyS4:/dev/ttyS4")
+
+	if [ -c /dev/ttyS4 ]
+	then
+	  if gid="$(stat -c "%g" /dev/ttyS4)"
+		then
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--group-add "$gid")
+		fi
+		for dev in /dev/tty*
+		do
+		[[ -c "$dev" ]] || continue
+		DOSH_DOCKER_RUN_EXTRA_OPTS+=(--device "$dev:$dev")
+		done
+	fi
+fi

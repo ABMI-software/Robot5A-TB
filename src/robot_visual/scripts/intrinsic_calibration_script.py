@@ -60,16 +60,11 @@ def calculate_reprojection_error(objpoints, imgpoints, rvecs, tvecs, mtx, dist):
 
 # Configuration for camera 1
 calibrate_camera(
-    images_pattern="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_1_images/*.jpg",
-    chessboard_size=(9, 6),
+    images_pattern="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_images/*.jpg",
+    chessboard_size=(20, 13),# n-1
+    
     square_size=0.02,
-    output_file="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_1_calibration.yaml",
+    output_file="/home/chipmunk-151/Robot5A-TB/src/robot_visual/config/camera_1_calibration.yaml",
 )
 
-# Configuration for camera 2
-calibrate_camera(
-    images_pattern="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_2_images/*.jpg",
-    chessboard_size=(9, 6),
-    square_size=0.02,
-    output_file="/home/eliott-frohly/Robot5A_BT/src/robot_visual/config/camera_2_calibration.yaml",
-)
+

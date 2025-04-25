@@ -1,0 +1,5 @@
+<library path="slush_engine_hardware">
+  <class name="robot_hardware_interface/SlushEngineHardware"
+         type="robot_hardware_interface::SlushEngineHardware"
+         base_class_type="hardware_interface::SystemInterface"/>
+</library>

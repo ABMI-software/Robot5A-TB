@@ -10,17 +10,21 @@ find_package(tf2_ros REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
+find_package(geometry_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 # Add executables
 add_executable(aruco_detector_single src/aruco_detector_single.cpp)
 ament_target_dependencies(aruco_detector_single rclcpp OpenCV tf2_ros Eigen3 yaml-cpp)
 
 add_executable(aruco_detector_double src/aruco_detector_double.cpp)
-ament_target_dependencies(aruco_detector_double rclcpp OpenCV)
+ament_target_dependencies(aruco_detector_double rclcpp OpenCV tf2_ros Eigen3 yaml-cpp)
 
 add_executable(visual_joint_state_publisher src/visual_joint_state_publisher.cpp)
 ament_target_dependencies(visual_joint_state_publisher rclcpp OpenCV)
+
+add_executable(aruco_displacement src/aruco_displacement.cpp)
+ament_target_dependencies(aruco_displacement rclcpp geometry_msgs tf2_ros ament_index_cpp)
 
 add_executable(camera_test_node src/camera_test_node.cpp)
 ament_target_dependencies(camera_test_node rclcpp OpenCV)
@@ -33,11 +37,21 @@ target_link_libraries(aruco_detector_single
   Eigen3::Eigen
 )
 
+target_link_libraries(aruco_detector_single ament_index_cpp::ament_index_cpp)
+
+target_link_libraries(aruco_detector_double
+  yaml-cpp
+  Eigen3::Eigen
+)
+
+target_link_libraries(aruco_detector_double ament_index_cpp::ament_index_cpp)
+
 # Install targets
 install(TARGETS
   aruco_detector_single
   aruco_detector_double
   visual_joint_state_publisher
+  aruco_displacement
   camera_test_node
   transform_logger
   DESTINATION lib/${PROJECT_NAME}

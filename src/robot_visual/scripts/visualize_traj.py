@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Load the CSV data into a pandas DataFrame
-file_path = '/home/eliott-frohly/Robot5A_BT/src/robot_visual/logs/transform_log.csv'
+file_path = '/home/chipmunk-151/camera_aruco/src/robot_visual/logs/transform_log.csv'
 data = pd.read_csv(file_path)
 
 # Extract x, y, z, and timestamp columns
