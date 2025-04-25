@@ -6,6 +6,49 @@ Robot5A-TB is a ROS2 workspace designed for controlling and visually servoing a 
 
 ## Workspace Structure
 
+
+### `src/chariot_control`
+This package allows the control of a 1D chariot and is primarily used for testing and data collection. It communicates with hardware over a serial interface and can execute command sequences for movement testing, calibration, or benchmarking.
+
+#### **Contents:**
+
+- **Nodes:**
+  - `commands_executor_node.py`: Node that reads commands from commands.txt from a file and sends them to the serial_node, while logging infos to a cvs.
+  - `serial_node.py`: Handles serial communication with the hardware (e.g., an Arduino or microcontroller).
+
+- **Launch:**
+  - `chariot_control_launch.py`: Launch file to start the chariot control nodes.
+
+- **Scripts:**
+  - `data_average.py`: Averages multiple log files for analysis.
+  - `data_process.py`: Processes raw log data for evaluation or plotting.
+
+- **Logs & Analysis:**
+  - `logs/`: Contains raw CSV logs from test runs.
+  - `logs_processed/`: Contains averaged results and PDFs generated from logged data.
+
+- **Commands File:**
+  - `commands.txt`: Predefined list of motion or control commands sent to the chariot during tests.
+
+#### **Usage:**
+
+To launch the system:
+```bash
+ros2 launch chariot_control chariot_control_launch.py
+```
+#### **To run command sequences:**
+```bash
+ros2 run chariot_control commands_executor_node.py
+```
+
+#### **To process logs:**
+```bash
+python3 script/data_process.py
+python3 script/data_average.py
+```
+Make sure the serial device (e.g., /dev/ttyUSB0) is connected and you have the correct permissions (sudo chmod a+rw /dev/ttyUSB0 or use udev rules) before launching.
+---
+
 ### `src/robot_description_tb`
 This package defines the robot's physical description (URDF), 3D meshes, and simulation setup.
 
@@ -90,14 +133,55 @@ This package interfaces ROS2 control with the physical robot hardware.
 ---
 
 ### `src/slush_engine_communication`
-This package drives the robot’s motors based on commands.
+This package is responsible for interfacing with the SlushEngine stepper motor controller. It handles real-time motor control, trajectory execution, and movement synchronization using ROS 2 nodes and serial communication.
 
 #### **Contents:**
-- `slush_node.py`: Subscribes to `/slush_commands` and controls Slush Engine motors.
+
+- **Nodes:**
+  - `slush_node.py`: Core node to communicate with the SlushEngine board via serial and execute received commands.
+  - `joint_sync_moveit_node.py`: Executes synchronized joint movements using trajectory data, optionally integrating with MoveIt.
+  - `steps_per_radian_node.py`: Utility node to calibrate or convert steps to radians based on joint configuration.
+
+- **Slush Library:**
+  - `Slush/`: Contains all logic and drivers for communicating with the SlushEngine board, including motor configuration and register access.
+
+- **Launch:**
+  - `joint_sync_moveit.launch.py`: Launch file for synchronized joint movements using MoveIt or predefined commands.
+
+- **Config:**
+  - `joint_commands.txt`: A list of joint position commands (e.g., in steps or radians) for the SlushEngine to execute.
+
+- **Scripts:**
+  - `slush_test.py`: Simple manual command test script for the SlushEngine.
+  - `single_motor_test.py`: For testing a single motor independently.
+  - `trajectory.py`: Generates and parses trajectory sequences for motion execution.
+  - `simulate_trajectory.py`: Simulates the generated trajectory for analysis.
+  - `visualize_chain.py`: Visualizes motion chain outputs (e.g., joint angle profiles).
+  - `analyse_joint.py`: Analyzes joint synchronization logs for performance diagnostics.
+
+- **Data Analysis:**
+  - `data_analysis/logs/`: Stores logged joint data from real-time execution.
+  - `data_analysis/output/`: Contains plots and PDFs of analysis results.
 
 #### **Usage:**
+
+To run the main control node:
 ```bash
 ros2 run slush_engine_communication slush_node
+```
+#### **To execute synchronized movement using MoveIt:**
+```bash
+ros2 launch slush_engine_communication joint_sync_moveit.launch.py
+```
+
+#### **To analyze log data:**
+```bash
+python3 scripts/analyse_joint.py
+```
+
+#### **To test a single motor:**
+```bash
+python3 scripts/single_motor_test.py
 ```
 
 ---
@@ -137,12 +221,12 @@ ros2 launch robot_moveit_config_tb demo.launch.py
 ## **Requirements**
 
 ### **Dependencies**
-- ROS2 Humble
-- OpenCV (with ArUco support)
+- ROS2 Humble (Ubuntu 22.04)
+- OpenCV (with ArUco support) (4.5.4.60)
 - Eigen3
 - YAML-CPP
 - tf2_ros
-- Gazebo ROS2
+- Gazebo ROS2 (Gazebo Classic)
 - MoveIt2
 
 ### **Installation**
@@ -158,22 +242,51 @@ source install/setup.bash
 
 ## **Usage Examples**
 
-### **Start the Full Visual Control Stack:**
+### `visual_control.launch.py`
+
+This launch file initializes the robot with **visual servoing** and MoveIt-based control. It conditionally launches components for open-loop or closed-loop control using 1 or 2 cameras.
+
+#### **Features:**
+
+- Loads the robot description from XACRO and publishes to `robot_state_publisher`
+- Supports both:
+  - **Open-loop** control (no camera feedback)
+  - **Closed-loop** control (ArUco marker-based vision feedback)
+- Dynamically chooses between:
+  - `aruco_detector_single` (1 camera)
+  - `aruco_detector_double` (2 cameras)
+- Starts the `visual_joint_state_publisher` for closed-loop control
+- Bridges joint states with `joint_state_bridge`
+- Loads and activates `ros2_control` controllers
+- Integrates full **MoveIt** stack:
+  - Move group
+  - Custom MoveIt GUI node
+  - RViz2 for visualization
+
+#### **Usage:**
+
 ```bash
 ros2 launch robot_control_tb visual_control.launch.py
 ```
 
-This command will start all necessary nodes, including:
-- **Robot State Publisher**
-- **Slush Engine Node**
-- **Aruco Marker Detection** (single or dual camera support)
-- **Visual Joint State Publisher**
-- **Joint State Bridge**
-- **Controller Manager**
-- **MoveIt Motion Planning**
-- **GUI for MoveIt Control**
+You can customize it using launch arguments:
 
-By running this launch file, all required components for visual servoing and hardware control will be initialized automatically.
+| Argument     | Default | Description                                         |
+|--------------|---------|-----------------------------------------------------|
+| `num_cameras`| `1`     | Number of cameras to use (1 or 2)                  |
+| `open_loop`  | `true`  | Whether to run without visual feedback (true/false)|
+
+Example for 2-camera **closed-loop** setup:
+
+```bash
+ros2 launch robot_control_tb visual_control.launch.py open_loop:=false num_cameras:=2
+```
+
+#### **Note:**
+
+- ArUco detectors and the `visual_joint_state_publisher` will **only** launch in `open_loop:=false` mode.
+- Launch file enforces startup order using `RegisterEventHandler` to prevent race conditions (e.g., controller starts only after joint state bridge is ready).
+
 
 
 ---
