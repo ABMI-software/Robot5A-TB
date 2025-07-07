@@ -6,8 +6,8 @@ Configuration centralisée pour tous les scripts de calibration
 # Configuration principale pour tous les scripts
 CONFIG = {
     # IDs des caméras (à ajuster selon votre système)
-    'camera_1_id': 1,
-    'camera_2_id': 2,
+    'camera_1_id': 2,
+    'camera_2_id': 1,
     
     # Chemins des répertoires d'images
     'camera_1_path': "/home/chloe/Robot5A-TB/src/robot_visual/config/camera_1_images_charuco",
@@ -55,5 +55,5 @@ def update_charuco_params(squares_x, squares_y, square_size, marker_size):
 
 
 
-if __name__ == "__main__":
-    print_config()
+"""if __name__ == "__main__":
+    print_config()"""

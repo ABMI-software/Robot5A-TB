@@ -1,0 +1,19 @@
+{
+    "port": "COM3",
+    "baudrate": "1000000",
+    "motor_speed": 1000,
+    "camera1_angle": 0.0,
+    "camera2_angle": 0.0,
+    "motor_ids": [
+        1,
+        2
+    ],
+    "angle_limits": {
+        "min": -150,
+        "max": 150
+    },
+    "speed_limits": {
+        "min": 100,
+        "max": 1023
+    }
+}
